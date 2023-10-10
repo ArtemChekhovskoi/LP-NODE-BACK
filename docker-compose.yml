@@ -1,0 +1,30 @@
+version: "3.7"
+volumes:
+  node_modules:
+services:
+  lp-backend:
+    image: lp-back
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3001:3001"
+    links:
+      - lp-mongo
+    depends_on:
+      - lp-mongo
+    volumes:
+      - .:/usr/src/app
+      - node_modules:/usr/src/app/node_modules
+  lp-mongo:
+    hostname: lp-mongo
+    container_name: lp-mongo
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    restart: always
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+    volumes:
+      - ./docker/volume/lp-mongo:/data/db
