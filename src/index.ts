@@ -1,4 +1,5 @@
 import express, { Express } from "express";
+import "dotenv/config";
 import { json } from "body-parser";
 import cors from "cors";
 import swaggerJsdoc from "swagger-jsdoc";
