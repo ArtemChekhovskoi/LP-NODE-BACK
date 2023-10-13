@@ -11,7 +11,6 @@ const mongoConfig = {
     },
   },
 };
-logger.info(`Mongo config: ${JSON.stringify(mongoConfig)}`);
 const mongoMain = new MongoConnection(logger, mongoConfig);
 
 export { mongoMain };
