@@ -11,7 +11,6 @@ const mongoConfig = {
     },
   },
 };
-console.log(process.env.MONGO_URI);
 const mongoMain = new MongoConnection(logger, mongoConfig);
 
 export { mongoMain };
