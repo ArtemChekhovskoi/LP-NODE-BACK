@@ -1,10 +1,11 @@
 # Stage 1: Build the application
-FROM node as builder
+FROM node
 
 # Create app directory
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
-COPY package.json package-lock.json ./
+RUN mkdir -p /usr/app
+WORKDIR /usr/app
+
+COPY tsconfig-paths-bootstrap.js package.json package-lock.json ./
 
 # Copy all files
 RUN npm install
@@ -13,16 +14,10 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Stage 2: Create a development image
-FROM node:14-slim
-
-ENV NODE_ENV development
-WORKDIR /usr/src/app
-
-# Copy the built artifacts from the builder stage
-COPY --from=builder /usr/src/app/dist ./dist
+ENV NODE_ENV local
+WORKDIR ./dist
 
 # Expose the port
 EXPOSE 3000
 
-CMD [ "node", "dist/index.js" ]
+CMD ["npm", "run", "dev:local"]

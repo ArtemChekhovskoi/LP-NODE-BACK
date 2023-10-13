@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development ts-node-dev --respawn -r tsconfig-paths/register src/index.ts",
     "dev:local": "NODE_ENV=local ts-node-dev --respawn -r tsconfig-paths/register src/index.ts",
-    "build": "tsc",
-    "heroku-postbuild": "npm install && npm run build"
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",

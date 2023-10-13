@@ -16,7 +16,8 @@
     "skipLibCheck": true,
     "target": "ESNext",
     "module": "CommonJS",
-    "outDir": "dist",
+    "outDir": "./dist",
+    "rootDir": ".",
     "strict": true,
     "baseUrl": "./",
     "paths": {
@@ -43,7 +44,7 @@
       ],
       "@middlewares/*": [
             "./src/middlewares/*"
-      ],
+      ]
     }
   },
   "exclude": [
