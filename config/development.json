@@ -44,7 +44,7 @@
       "/user/google-signin",
       "/health-check"
     ],
-    "maxTokenLength": 1000,
+    "maxTokenLength": 1001,
     "minTokenLength": 5,
     "google": {
       "url": "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
