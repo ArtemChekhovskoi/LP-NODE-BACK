@@ -11,5 +11,8 @@ router.use((req, res, next) => {
 
 router.use(checkAuth);
 router.use("/user", userRouter);
+router.use("/health-check", (req, res) =>
+  res.status(200).json({ success: true }),
+);
 
 export default router;

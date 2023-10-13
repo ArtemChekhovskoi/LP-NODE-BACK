@@ -38,7 +38,8 @@
   },
   "auth": {
     "notProtectedRoutes": [
-      "/user/google-signin"
+      "/user/google-signin",
+      "/health-check"
     ],
     "maxTokenLength": 1000,
     "minTokenLength": 5,
