@@ -20,4 +20,4 @@ COPY --from=builder /usr/src/app/dist ./dist
 # Expose the port
 EXPOSE 3001
 
-CMD [ "node", "dist/index.js" ]
+CMD [ "node", "dist/src/index.js" ]
