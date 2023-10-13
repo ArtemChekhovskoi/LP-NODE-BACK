@@ -9,8 +9,7 @@ COPY package.json package-lock.json ./
 RUN npm install
 COPY . .
 
-# Install all dependencies
-RUN npm build
+RUN npm run build
 
 FROM node:slim
 
