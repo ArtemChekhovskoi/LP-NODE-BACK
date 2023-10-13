@@ -1,0 +1,63 @@
+{
+  "server": {
+    "baseDir": "./",
+    "port": 3000,
+    "domain": "localhost"
+  },
+  "swagger": {
+    "definition": {
+      "openapi": "3.0.0",
+      "info": {
+        "title": "Life patterns API",
+        "version": "0.1.0",
+        "description": "Use it to check routes and models",
+        "license": {
+          "name": "MIT",
+          "url": "https://spdx.org/licenses/MIT.html"
+        },
+        "contact": {
+          "name": "Artem Chekhovskoi",
+          "email": "achekhovskoi@gmail.com"
+        }
+      },
+      "servers": [
+        {
+          "url": "http://localhost:3000"
+        }
+      ]
+    }
+  },
+  "mongo": {
+    "main": {
+      "uri": "mongodb+srv://neomonreo:1z0rjh84n@cluster0.unjsdfm.mongodb.net/Main",
+      "options": {
+        "authSource": "admin",
+        "auth": {
+          "username": "neomonreo",
+          "password": "1z0rjh84n"
+        }
+      }
+    }
+  },
+  "auth": {
+    "notProtectedRoutes": [
+      "/user/google-signin",
+      "/health-check"
+    ],
+    "maxTokenLength": 1000,
+    "minTokenLength": 5,
+    "google": {
+      "url": "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
+      "fields": [
+        "id",
+        "name",
+        "email"
+      ]
+    }
+  },
+  "jwt": {
+    "accessTokenSecret": "N1YNp3rU0m30",
+    "accessTokenExpires": 1200000,
+    "maxCount": 10
+  }
+}

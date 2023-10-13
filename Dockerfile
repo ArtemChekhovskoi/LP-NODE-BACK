@@ -14,10 +14,10 @@ COPY . .
 # Build the application
 RUN npm run build
 
-ENV NODE_ENV local
+ENV NODE_ENV development
 WORKDIR ./dist
 
 # Expose the port
 EXPOSE 3000
 
-CMD ["npm", "run", "dev:local"]
+CMD ["npm", "run", "dev"]
