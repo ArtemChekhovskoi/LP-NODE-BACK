@@ -29,12 +29,12 @@
   },
   "mongo": {
     "main": {
-      "uri": "mongodb+srv://neomonreo:1z0rjh84n@cluster0.unjsdfm.mongodb.net/Main",
+      "uri": "MONGO_DEV_URI",
       "options": {
         "authSource": "admin",
         "auth": {
-          "username": "neomonreo",
-          "password": "1z0rjh84n"
+          "username": "MONGO_DEV_USER",
+          "password": "MONGO_DEV_PASSWORD"
         }
       }
     }
