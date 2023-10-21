@@ -10,5 +10,8 @@ router.route("/update-location").post(controllers.user.postUpdateLocation);
 router
   .route("/update-apps-connected")
   .post(controllers.user.postUpdateAppsConnected);
+router
+  .route("/update-registration-step")
+  .post(controllers.user.postUpdateRegistrationStep);
 
 export default router;

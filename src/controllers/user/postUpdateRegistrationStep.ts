@@ -2,37 +2,41 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import { Users } from "@models/users";
-import { USERS_GENDER } from "@constants/user";
+import { REGISTRATION_STEPS } from "@constants/user";
 
-const postUpdateGender = async (req: ExtendedRequest, res: Response) => {
+const postUpdateRegistrationStep = async (
+  req: ExtendedRequest,
+  res: Response,
+) => {
   const responseJSON = {
     success: false,
     error: "",
     errorCode: "",
   };
   try {
-    const { gender } = req.body;
+    const { registrationStep } = req.body;
     const { usersID } = req;
+
     if (
-      !gender ||
-      typeof gender !== "string" ||
-      !USERS_GENDER.includes(gender)
+      !registrationStep ||
+      typeof registrationStep !== "string" ||
+      !REGISTRATION_STEPS.includes(registrationStep)
     ) {
-      responseJSON.error = `Gender must be a string and on of ${USERS_GENDER.join()}`;
+      responseJSON.error = "Registration step must be a string";
       responseJSON.errorCode = "INVALID_PARAMETER";
       return res.status(400).json(responseJSON);
     }
 
-    await Users.updateOne({ _id: usersID }, { gender });
+    await Users.updateOne({ _id: usersID }, { registrationStep });
 
     responseJSON.success = true;
     return res.status(200).json(responseJSON);
   } catch (e) {
-    logger.error(`Error at controllers/user/postUpdateGender: ${e}`);
+    logger.error(`Error at controllers/user/postUpdateRegistrationStep: ${e}`);
     responseJSON.error = "Something went wrong";
     responseJSON.errorCode = "SOMETHING_WRONG";
     return res.status(500).json(responseJSON);
   }
 };
 
-export default postUpdateGender;
+export default postUpdateRegistrationStep;

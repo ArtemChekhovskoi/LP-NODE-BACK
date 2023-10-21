@@ -13,7 +13,6 @@ const postUpdateAppsConnected = async (req: ExtendedRequest, res: Response) => {
   try {
     const { appsConnected } = req.body;
     const { usersID } = req;
-
     const validateAppsConnectedArray = (appsArray: string[]): boolean => {
       return appsArray.every((app) => {
         return APPS_CONNECTED.includes(app);

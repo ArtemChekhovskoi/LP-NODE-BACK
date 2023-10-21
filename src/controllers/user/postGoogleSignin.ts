@@ -25,7 +25,7 @@ interface ApiResponse {
   success: boolean;
   data: {
     token?: string;
-    isNewUser?: boolean;
+    registrationStep?: string;
     usersID?: string;
     provider?: SocialType;
   };
@@ -69,7 +69,7 @@ const postGoogleSignIn = async (req: Request, res: Response) => {
 
     responseJSON.success = true;
     responseJSON.data.token = userData.accessToken;
-    responseJSON.data.isNewUser = userData.isNewUser;
+    responseJSON.data.registrationStep = userData.registrationStep;
     responseJSON.data.usersID = userData.usersID;
     responseJSON.data.provider = PROVIDER;
     return res.status(200).json(responseJSON);

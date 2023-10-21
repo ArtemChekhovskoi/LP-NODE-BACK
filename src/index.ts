@@ -34,7 +34,7 @@ class App {
   useRateLimit() {
     const limiter = rateLimit({
       windowMs: 0.02 * 60 * 1000,
-      max: 1,
+      max: 5,
       message:
         "Too many requests from this IP, please try again after 15 minutes",
       standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
