@@ -1,5 +1,6 @@
 import mongoose, { InferSchemaType, Schema } from "mongoose";
 import { Users } from "@models/users";
+import { Measurements } from "@models/measurements";
 
 const usersDailyMeasurements = new Schema({
   usersID: {
@@ -15,46 +16,30 @@ const usersDailyMeasurements = new Schema({
     type: Date,
     required: true,
   },
-  weight: {
-    value: {
-      type: Number,
+  measurements: [
+    {
+      measurementID: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        unique: true,
+        ref: Measurements.collection.name,
+      },
+      code: {
+        type: String,
+        required: true,
+      },
+      value: {
+        type: Number,
+      },
+      customFields: {
+        type: Object,
+      },
     },
-    measurementID: {
-      type: Schema.Types.ObjectId,
-    },
-  },
-  height: {
-    value: {
-      type: Number,
-    },
-    unit: {
-      type: String,
-    },
-    type: {
-      type: String,
-      enum: ["custom", "auto"],
-    },
-  },
-  hateRateSample: {
-    value: {
-      type: Number,
-    },
-    unit: {
-      type: String,
-    },
-  },
-  steps: {
-    value: {
-      type: Number,
-    },
-    unit: {
-      type: String,
-    },
-  },
+  ],
 });
 
 const UsersDailyMeasurements = mongoose.model(
-  "UsersDailyMeasurements",
+  "users_daily_measurements",
   usersDailyMeasurements,
 );
 export type User = InferSchemaType<typeof usersDailyMeasurements>;

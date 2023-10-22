@@ -6,6 +6,7 @@ import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import rateLimit from "express-rate-limit";
 import { mongoMain } from "@helpers/mongoConnectionManager";
+import { apiErrorsHandler } from "@helpers/apiErrorsHandler";
 import routes from "./routes";
 import { logger } from "./logger";
 import config from "../config";
@@ -59,11 +60,16 @@ class App {
     this.app.use("/api", routes);
   }
 
+  useErrorHandler() {
+    this.app.use(apiErrorsHandler);
+  }
+
   public async init() {
     this.useMiddlewares();
     this.useRateLimit();
     this.useRoutes();
     this.useSwagger();
+    this.useErrorHandler();
     this.app.listen(process.env.PORT || this.port);
     this.logger.info(`Server running at http://localhost:${this.port}/`);
   }

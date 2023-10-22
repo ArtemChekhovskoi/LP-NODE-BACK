@@ -28,6 +28,9 @@ const createNewDump = () => {
     }));
 
     runExec(
+      `mongosh ${URI_LOCAL} --eval 'db.${collection.name}.deleteMany({})'`,
+    );
+    runExec(
       `mongosh ${URI_LOCAL} --eval 'db.${
         collection.name
       }.bulkWrite(${JSON.stringify(collectionBulkWrite)})'`,

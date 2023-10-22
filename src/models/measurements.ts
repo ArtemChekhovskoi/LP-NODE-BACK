@@ -5,6 +5,11 @@ const measurements = new Schema({
     type: String,
     required: true,
   },
+  code: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   unit: {
     type: String,
     required: true,
@@ -13,6 +18,9 @@ const measurements = new Schema({
     type: String,
     required: true,
     enum: ["custom", "auto"],
+  },
+  customFields: {
+    type: [String],
   },
   active: {
     type: Boolean,
