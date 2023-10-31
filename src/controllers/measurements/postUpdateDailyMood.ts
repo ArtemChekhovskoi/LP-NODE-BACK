@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
-import { UsersDailyMeasurements } from "@models/users_daily_measurments";
+import { UsersDailyCustomMeasurements } from "@models/users_daily_custom_measurments";
 import { Measurements } from "@models/measurements";
 import getStartOfDay from "@helpers/getStartOfTheDay";
 
@@ -29,7 +29,7 @@ const postUpdateDailyMood = async (req: ExtendedRequest, res: Response) => {
       return res.status(404).json(responseJSON);
     }
 
-    const userDailyMeasurement = await UsersDailyMeasurements.findOne({
+    const userDailyMeasurement = await UsersDailyCustomMeasurements.findOne({
       usersID,
       date: timeOnStartOfTheDay,
     });
@@ -38,7 +38,7 @@ const postUpdateDailyMood = async (req: ExtendedRequest, res: Response) => {
       (measurement) => measurement.code === measurementCode,
     );
     if (!userDailyMeasurement || !isMeasurementExists) {
-      await UsersDailyMeasurements.updateOne(
+      await UsersDailyCustomMeasurements.updateOne(
         {
           usersID,
           date: timeOnStartOfTheDay,
@@ -61,7 +61,7 @@ const postUpdateDailyMood = async (req: ExtendedRequest, res: Response) => {
         { upsert: true },
       );
     } else {
-      await UsersDailyMeasurements.updateOne(
+      await UsersDailyCustomMeasurements.updateOne(
         {
           usersID,
           date: timeOnStartOfTheDay,

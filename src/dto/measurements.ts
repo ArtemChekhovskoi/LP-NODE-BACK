@@ -1,4 +1,5 @@
 import * as yup from "yup";
+import { dateValidation } from "./commonMethods";
 
 const updateDailyMoodSchema = yup.object({
   mood: yup.string().required(),
@@ -7,4 +8,25 @@ const updateDailyMoodSchema = yup.object({
   measurementCode: yup.string().required(),
 });
 
-export { updateDailyMoodSchema };
+const updateAppleHealthSchema = yup.object({
+  lastSyncDate: yup.string().required(),
+  data: yup.array().of(
+    yup.object().shape({
+      // @ts-ignore
+      [yup.string()]: yup.array().of(
+        yup.object().shape({
+          startDate: yup.string().required(),
+          endDate: yup.string().required(),
+          value: yup.number().required(),
+        }),
+      ),
+    }),
+  ),
+});
+
+const listSchema = yup.object({
+  startDate: dateValidation().required(),
+  endDate: dateValidation().required(),
+});
+
+export { updateDailyMoodSchema, listSchema, updateAppleHealthSchema };

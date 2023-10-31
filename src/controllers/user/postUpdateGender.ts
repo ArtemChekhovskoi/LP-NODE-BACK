@@ -13,15 +13,6 @@ const postUpdateGender = async (req: ExtendedRequest, res: Response) => {
   try {
     const { gender } = req.body;
     const { usersID } = req;
-    if (
-      !gender ||
-      typeof gender !== "string" ||
-      !USERS_GENDER.includes(gender)
-    ) {
-      responseJSON.error = `Gender must be a string and on of ${USERS_GENDER.join()}`;
-      responseJSON.errorCode = "INVALID_PARAMETER";
-      return res.status(400).json(responseJSON);
-    }
 
     await Users.updateOne({ _id: usersID }, { gender });
 

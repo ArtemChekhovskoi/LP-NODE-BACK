@@ -4,6 +4,7 @@ import postUpdateGender from "@controllers/user/postUpdateGender";
 import postUpdateLocation from "@controllers/user/postUpdateLocation";
 import postUpdateAppsConnected from "@controllers/user/postUpdateAppsConnected";
 import postUpdateRegistrationStep from "@controllers/user/postUpdateRegistrationStep";
+import getProfile from "@controllers/user/getProfile";
 
 const user = {
   postGoogleSignIn,
@@ -12,6 +13,7 @@ const user = {
   postUpdateAppsConnected,
   postUpdateGender,
   postUpdateRegistrationStep,
+  getProfile,
 };
 
 export default user;

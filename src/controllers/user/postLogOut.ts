@@ -10,7 +10,7 @@ const postLogOut = async (req: ExtendedRequest, res: Response) => {
     errorCode: "",
   };
   try {
-    const sessionsID = { req };
+    const { sessionsID } = req;
     if (!sessionsID) {
       responseJSON.error = "Missing sessionsID!";
       responseJSON.errorCode = "MISSING_SESSION_ID";

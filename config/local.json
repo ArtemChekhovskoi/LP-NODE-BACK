@@ -56,5 +56,13 @@
     "accessTokenSecret": "N1YNp3rU0m30",
     "accessTokenExpires": 1200000,
     "maxCount": 10
-  }
+  },
+  "supportedMeasurements": [
+    "weightSamples",
+    "sleepSamples",
+    "heartRateSamples",
+    "heightSamples",
+    "stepsSamples",
+    "runningWalkingDistanceSamples"
+  ]
 }

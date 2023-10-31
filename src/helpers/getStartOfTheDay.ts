@@ -1,5 +1,6 @@
-export default function getStartOfDay(date: string): Date {
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to 0
-  return startOfDay;
+import moment from "moment";
+
+export default function getStartOfDay(date: string | Date): Date {
+  const currentDateStartMoment = moment(new Date(date)).utc().startOf("day");
+  return new Date(currentDateStartMoment.toString());
 }

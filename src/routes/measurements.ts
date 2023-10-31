@@ -1,12 +1,17 @@
 import { Router } from "express";
 import controllers from "@controllers/index";
 import { validateDTO } from "@middlewares/validateDTO";
-import { updateDailyMoodSchema } from "../dto/measurements";
+import {
+  listSchema,
+  updateAppleHealthSchema,
+  updateDailyMoodSchema,
+} from "../dto/measurements";
 
 const router = Router();
 
-router.route("/list").get(controllers.measurements.getList);
-router.route("/empty-days").get(controllers.measurements.getEmptyDays);
+router
+  .route("/list")
+  .get(validateDTO(listSchema, "query"), controllers.measurements.getList);
 
 router
   .route("/update-mood")
@@ -18,5 +23,11 @@ router.route("/update-pain").post(controllers.measurements.postUpdateDailyPain);
 router
   .route("/update-feeling")
   .post(controllers.measurements.postUpdateDailyFeeling);
+router
+  .route("/update-apple-health")
+  .post(
+    validateDTO(updateAppleHealthSchema),
+    controllers.measurements.postUpdateAppleHealth,
+  );
 
 export default router;

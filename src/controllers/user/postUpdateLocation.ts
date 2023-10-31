@@ -13,12 +13,6 @@ const postUpdateLocation = async (req: ExtendedRequest, res: Response) => {
     const { location } = req.body;
     const { usersID } = req;
 
-    if (!location || typeof location !== "string") {
-      responseJSON.error = "Location must be a string";
-      responseJSON.errorCode = "INVALID_PARAMETER";
-      return res.status(400).json(responseJSON);
-    }
-
     await Users.updateOne({ _id: usersID }, { location });
 
     responseJSON.success = true;

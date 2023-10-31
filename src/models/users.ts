@@ -52,6 +52,9 @@ const users = new Schema(
       type: String,
       enum: ["new", "gender", "connectApp", "location", "complete"],
     },
+    lastSyncDate: {
+      type: Date,
+    },
   },
   {
     collection: "users",

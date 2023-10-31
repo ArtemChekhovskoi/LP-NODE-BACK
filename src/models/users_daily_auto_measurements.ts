@@ -2,7 +2,7 @@ import mongoose, { InferSchemaType, Schema } from "mongoose";
 import { Users } from "@models/users";
 import { Measurements } from "@models/measurements";
 
-const usersDailyMeasurements = new Schema({
+const usersDailyAutoMeasurements = new Schema({
   usersID: {
     type: Schema.Types.ObjectId,
     required: true,
@@ -20,11 +20,15 @@ const usersDailyMeasurements = new Schema({
     {
       measurementID: {
         type: Schema.Types.ObjectId,
-        required: true,
-        unique: true,
-        ref: Measurements.collection.name,
       },
       code: {
+        type: String,
+        required: true,
+      },
+      unit: {
+        type: String,
+      },
+      source: {
         type: String,
         required: true,
       },
@@ -38,9 +42,11 @@ const usersDailyMeasurements = new Schema({
   ],
 });
 
-const UsersDailyMeasurements = mongoose.model(
-  "users_daily_measurements",
-  usersDailyMeasurements,
+const UsersDailyAutoMeasurements = mongoose.model(
+  "users_daily_auto_measurements",
+  usersDailyAutoMeasurements,
 );
-export type User = InferSchemaType<typeof usersDailyMeasurements>;
-export { UsersDailyMeasurements };
+export type UsersDailyAutoMeasurement = InferSchemaType<
+  typeof usersDailyAutoMeasurements
+>;
+export { UsersDailyAutoMeasurements };

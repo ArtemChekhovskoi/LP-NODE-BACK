@@ -17,16 +17,6 @@ const postUpdateRegistrationStep = async (
     const { registrationStep } = req.body;
     const { usersID } = req;
 
-    if (
-      !registrationStep ||
-      typeof registrationStep !== "string" ||
-      !REGISTRATION_STEPS.includes(registrationStep)
-    ) {
-      responseJSON.error = "Registration step must be a string";
-      responseJSON.errorCode = "INVALID_PARAMETER";
-      return res.status(400).json(responseJSON);
-    }
-
     await Users.updateOne({ _id: usersID }, { registrationStep });
 
     responseJSON.success = true;

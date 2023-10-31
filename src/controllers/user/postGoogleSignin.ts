@@ -43,12 +43,6 @@ const postGoogleSignIn = async (req: Request, res: Response) => {
   try {
     const { token } = req.body;
 
-    if (!token) {
-      responseJSON.error = "Can't find token in body";
-      responseJSON.errorCode = "MISSING_TOKEN_IN_BODY";
-      return res.status(400).json(responseJSON);
-    }
-
     // token validation
     const isValidGoogleToken = isValidToken(token);
     if (!isValidGoogleToken) {
@@ -68,9 +62,7 @@ const postGoogleSignIn = async (req: Request, res: Response) => {
     const userData = await socialLogin(req, res, profile, "google");
 
     responseJSON.success = true;
-    responseJSON.data.token = userData.accessToken;
-    responseJSON.data.registrationStep = userData.registrationStep;
-    responseJSON.data.usersID = userData.usersID;
+    responseJSON.data = userData;
     responseJSON.data.provider = PROVIDER;
     return res.status(200).json(responseJSON);
   } catch (error) {

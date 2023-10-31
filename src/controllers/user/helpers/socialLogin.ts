@@ -8,6 +8,10 @@ interface ISocialLoginReturn {
   accessToken: string;
   usersID: string;
   registrationStep?: string;
+  name: string;
+  email: string;
+  appsConnected: string[] | [];
+  lastSyncDate: Date;
 }
 const socialLogin = async (
   req: Request,
@@ -36,6 +40,10 @@ const socialLogin = async (
       ...tokens,
       usersID: userBySocialId._id.toString(),
       registrationStep: userBySocialId.registrationStep,
+      appsConnected: userBySocialId.appsConnected,
+      lastSyncDate: userBySocialId.lastSyncDate || new Date(),
+      name: userBySocialId.name,
+      email: userBySocialId.email,
     };
   }
 
@@ -50,6 +58,7 @@ const socialLogin = async (
     lastUpdated: new Date(),
     active: true,
     registrationStep: "new",
+    lastSyncDate: new Date(),
   });
   const savedNewUser = await newUser.save();
 
@@ -63,6 +72,10 @@ const socialLogin = async (
     ...tokens,
     usersID: savedNewUser._id.toString(),
     registrationStep: savedNewUser.registrationStep,
+    lastSyncDate: savedNewUser.lastSyncDate || new Date(),
+    appsConnected: [],
+    name: savedNewUser.name,
+    email: savedNewUser.email,
   };
 };
 

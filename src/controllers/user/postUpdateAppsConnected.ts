@@ -18,11 +18,7 @@ const postUpdateAppsConnected = async (req: ExtendedRequest, res: Response) => {
         return APPS_CONNECTED.includes(app);
       });
     };
-    if (
-      !appsConnected ||
-      !Array.isArray(appsConnected) ||
-      !validateAppsConnectedArray(appsConnected)
-    ) {
+    if (!validateAppsConnectedArray(appsConnected)) {
       responseJSON.error = `Apps connected must be an array of strings and one of ${APPS_CONNECTED}`;
       responseJSON.errorCode = "INVALID_PARAMETER";
       return res.status(400).json(responseJSON);
