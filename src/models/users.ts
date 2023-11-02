@@ -42,8 +42,16 @@ const users = new Schema(
         type: String,
       },
     ],
-    location: {
-      type: String,
+    regLocation: {
+      long: {
+        type: Number,
+      },
+      lat: {
+        type: Number,
+      },
+      place: {
+        type: String,
+      },
     },
     dataTrackingType: {
       type: String,

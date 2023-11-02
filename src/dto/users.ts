@@ -14,7 +14,8 @@ const postUpdateGenderSchema = yup.object({
 });
 
 const postUpdateLocationSchema = yup.object({
-  location: yup.string().required(),
+  long: yup.number().required(),
+  lat: yup.number().required(),
 });
 
 const postUpdateRegistrationStepSchema = yup.object({

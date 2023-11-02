@@ -5,7 +5,6 @@ import {
   postGoogleSignInSchema,
   postUpdateAppsConnectedSchema,
   postUpdateGenderSchema,
-  postUpdateLocationSchema,
   postUpdateRegistrationStepSchema,
 } from "../dto/users";
 
@@ -20,12 +19,6 @@ router.route("/logout").post(controllers.user.postLogOut);
 router
   .route("/update-gender")
   .post(validateDTO(postUpdateGenderSchema), controllers.user.postUpdateGender);
-router
-  .route("/update-location")
-  .post(
-    validateDTO(postUpdateLocationSchema),
-    controllers.user.postUpdateLocation,
-  );
 router
   .route("/update-apps-connected")
   .post(

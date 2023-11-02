@@ -5,6 +5,7 @@ import {
   listSchema,
   updateAppleHealthSchema,
   updateDailyMoodSchema,
+  updateDailyWeatherSchema,
 } from "../dto/measurements";
 
 const router = Router();
@@ -28,6 +29,12 @@ router
   .post(
     validateDTO(updateAppleHealthSchema),
     controllers.measurements.postUpdateAppleHealth,
+  );
+router
+  .route("/update-daily-weather")
+  .post(
+    validateDTO(updateDailyWeatherSchema),
+    controllers.measurements.postUpdateDailyWeather,
   );
 
 export default router;

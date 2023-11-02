@@ -8,6 +8,11 @@ const updateDailyMoodSchema = yup.object({
   measurementCode: yup.string().required(),
 });
 
+const updateDailyWeatherSchema = yup.object({
+  long: yup.number().required(),
+  lat: yup.number().required(),
+});
+
 const updateAppleHealthSchema = yup.object({
   lastSyncDate: yup.string().required(),
   data: yup.array().of(
@@ -29,4 +34,9 @@ const listSchema = yup.object({
   endDate: dateValidation().required(),
 });
 
-export { updateDailyMoodSchema, listSchema, updateAppleHealthSchema };
+export {
+  updateDailyMoodSchema,
+  updateDailyWeatherSchema,
+  listSchema,
+  updateAppleHealthSchema,
+};
