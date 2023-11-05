@@ -27,7 +27,7 @@ const postUpdateAppsConnected = async (req: ExtendedRequest, res: Response) => {
     await Users.updateOne(
       { _id: usersID },
       {
-        $push: {
+        $addToSet: {
           appsConnected,
         },
       },

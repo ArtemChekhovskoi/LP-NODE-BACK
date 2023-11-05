@@ -5,6 +5,7 @@ import {
   listSchema,
   updateAppleHealthSchema,
   updateDailyMoodSchema,
+  updateDailyNotesSchema,
   updateDailyWeatherSchema,
 } from "../dto/measurements";
 
@@ -35,6 +36,12 @@ router
   .post(
     validateDTO(updateDailyWeatherSchema),
     controllers.measurements.postUpdateDailyWeather,
+  );
+router
+  .route("/update-notes")
+  .post(
+    validateDTO(updateDailyNotesSchema),
+    controllers.measurements.postUpdateDailyNotes,
   );
 
 export default router;

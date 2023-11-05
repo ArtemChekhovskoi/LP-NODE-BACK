@@ -29,6 +29,11 @@ const updateAppleHealthSchema = yup.object({
   ),
 });
 
+const updateDailyNotesSchema = yup.object({
+  notes: yup.string().required(),
+  date: dateValidation().required(),
+});
+
 const listSchema = yup.object({
   startDate: dateValidation().required(),
   endDate: dateValidation().required(),
@@ -37,6 +42,7 @@ const listSchema = yup.object({
 export {
   updateDailyMoodSchema,
   updateDailyWeatherSchema,
+  updateDailyNotesSchema,
   listSchema,
   updateAppleHealthSchema,
 };

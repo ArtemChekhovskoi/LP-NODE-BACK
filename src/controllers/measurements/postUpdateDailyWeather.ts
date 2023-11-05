@@ -27,7 +27,7 @@ const postUpdateDailyWeather = async (req: ExtendedRequest, res: Response) => {
     const todayUserWeather = await UsersDailyCustomMeasurements.findOne({
       usersID,
       date: timeOnStartOfTheDay,
-      "measurements.measurementID": measurementInfo?._id,
+      "measurements.code": measurementInfo?.code,
     });
     if (todayUserWeather && todayUserWeather.measurements) {
       const weatherMeasurement = todayUserWeather.measurements.find(
@@ -64,8 +64,7 @@ const postUpdateDailyWeather = async (req: ExtendedRequest, res: Response) => {
         },
         $addToSet: {
           measurements: {
-            measurementID: measurementInfo._id,
-            code: "weather",
+            code: measurementInfo.code,
             customFields: {
               location: weatherInfo.location,
               weather: weatherInfo.weather,

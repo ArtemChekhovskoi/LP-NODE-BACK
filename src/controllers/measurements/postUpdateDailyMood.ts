@@ -49,7 +49,6 @@ const postUpdateDailyMood = async (req: ExtendedRequest, res: Response) => {
           },
           $push: {
             measurements: {
-              measurementID: measurementInfo._id,
               code: measurementCode,
               customFields: {
                 mood,

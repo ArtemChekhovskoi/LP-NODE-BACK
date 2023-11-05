@@ -33,10 +33,9 @@ const createDatesObject = (
           datesArray.push(date);
         }
         if (measurementsCodesArray.includes(key)) {
-          const { unit, _id: measurementID } =
+          const { unit } =
             measurementsConfig.find(({ code }) => code === key) || {};
           datesObject[date].push({
-            measurementID,
             unit,
             code: key,
             value: measurement.value,

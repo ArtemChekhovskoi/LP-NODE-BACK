@@ -1,6 +1,5 @@
 import mongoose, { InferSchemaType, Schema } from "mongoose";
 import { Users } from "@models/users";
-import { Measurements } from "@models/measurements";
 
 const usersDailyCustomMeasurements = new Schema({
   usersID: {
@@ -18,9 +17,6 @@ const usersDailyCustomMeasurements = new Schema({
   },
   measurements: [
     {
-      measurementID: {
-        type: Schema.Types.ObjectId,
-      },
       code: {
         type: String,
         required: true,
