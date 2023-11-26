@@ -6,7 +6,6 @@ const getDailyWeather = async (long: number, lat: number) => {
     const apiKey = process.env.WEATHER_API_KEY;
     const { url } = config.weather;
     const requestUrl = `${url}/forecast.json?q=${lat},${long}&ays=1&key=${apiKey}`;
-    console.log(requestUrl);
     const response = await fetch(requestUrl);
     const data = await response.json();
     if (!data) {
@@ -24,9 +23,10 @@ const getDailyWeather = async (long: number, lat: number) => {
         country: data.location.country,
       },
       weather: {
-        condition: data.forecast.forecastday[0].day.condition.text,
-        avgTemp: data.forecast.forecastday[0].day.avgtemp_c,
-        avgHumidity: data.forecast.forecastday[0].day.avghumidity,
+        condition: data.current?.condition.text,
+        avgTemp: data.current?.temp_c,
+        humidity: data.current?.humidity,
+        wind: data.current?.wind_kph,
       },
     };
   } catch (e) {

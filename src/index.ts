@@ -28,7 +28,7 @@ class App {
   }
 
   useMiddlewares() {
-    this.app.use(json());
+    this.app.use(json({ limit: "50mb" }));
     this.app.use(cors());
   }
 

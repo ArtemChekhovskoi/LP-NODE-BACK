@@ -18,13 +18,7 @@ const UserProfileKeysArray: UserProfileKeys[] = [
 const APPS_CONNECTED = ["appleHealth", "googleFit"];
 const USERS_GENDER = ["male", "female", "other"];
 const DATA_TRACKING_TYPE = ["manual", "automatic"];
-const REGISTRATION_STEPS = [
-  "new",
-  "gender",
-  "connectApp",
-  "location",
-  "complete",
-];
+const REGISTRATION_STEPS = ["gender", "connectApp", "location", "complete"];
 export {
   UserProfileKeysArray,
   APPS_CONNECTED,

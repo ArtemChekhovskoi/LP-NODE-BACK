@@ -1,16 +1,14 @@
-import getList from "@controllers/measurements/getList";
-import postUpdateDailyMood from "@controllers/measurements/postUpdateDailyMood";
-import postUpdateDailyPain from "@controllers/measurements/postUpdateDailyPain";
-import postUpdateDailyFeeling from "@controllers/measurements/postUpdateDailyFeeling";
+import getMeasurementsList from "@controllers/measurements/getMeasurementsList";
+// import postUpdateDailyEmotions from "@controllers/measurements/postUpdateDailyEmotions";
+import getBalanceEggConfig from "@controllers/measurements/getBalanceEggConfig";
 import postUpdateAppleHealth from "@controllers/measurements/postUpdateAppleHealth";
 import postUpdateDailyWeather from "@controllers/measurements/postUpdateDailyWeather";
 import postUpdateDailyNotes from "@controllers/measurements/postUpdateDailyNotes";
 
 const measurements = {
-  getList,
-  postUpdateDailyMood,
-  postUpdateDailyPain,
-  postUpdateDailyFeeling,
+  getMeasurementsList,
+  // postUpdateDailyEmotions,
+  getBalanceEggConfig,
   postUpdateAppleHealth,
   postUpdateDailyWeather,
   postUpdateDailyNotes,

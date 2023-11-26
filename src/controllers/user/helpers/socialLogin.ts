@@ -57,7 +57,7 @@ const socialLogin = async (
     created: new Date(),
     lastUpdated: new Date(),
     active: true,
-    registrationStep: "new",
+    registrationStep: "gender",
     lastSyncDate: new Date(),
   });
   const savedNewUser = await newUser.save();

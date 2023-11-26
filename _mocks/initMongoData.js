@@ -11,7 +11,7 @@ const runExec = (cmd) =>
 
 const DB_NAME = "Main";
 
-const URI_LOCAL = `mongodb://localhost:27017/${DB_NAME}`;
+const URI_LOCAL = `mongodb://localhost:27017,localhost:27018,localhost:27019/${DB_NAME}`;
 
 const COLLECTIONS = [measurements];
 

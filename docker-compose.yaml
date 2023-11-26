@@ -10,15 +10,39 @@ services:
     ports:
       - "3000:3000"
     links:
-      - mongo
+      - mongo1
+      - mongo2
+      - mongo3
     depends_on:
-      - mongo
-  mongo:
-    hostname: mongo
-    container_name: mongo
+      - mongo1
+      - mongo2
+      - mongo3
+  mongo1:
     image: mongo
+    container_name: mongo1
     ports:
       - "27017:27017"
     restart: always
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
     volumes:
       - ./docker/volume/mongodb1:/data/db
+
+  mongo2:
+      image: mongo
+      container_name: mongo2
+      ports:
+        - "27018:27017"
+      restart: always
+      entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+      volumes:
+        - ./docker/volume/mongodb2:/data/db
+
+  mongo3:
+      image: mongo
+      container_name: mongo3
+      ports:
+        - "27019:27017"
+      restart: always
+      entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+      volumes:
+        - ./docker/volume/mongodb3:/data/db

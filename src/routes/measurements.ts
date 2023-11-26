@@ -2,29 +2,35 @@ import { Router } from "express";
 import controllers from "@controllers/index";
 import { validateDTO } from "@middlewares/validateDTO";
 import {
-  listSchema,
   updateAppleHealthSchema,
-  updateDailyMoodSchema,
-  updateDailyNotesSchema,
+  // updateDailyMoodSchema,
   updateDailyWeatherSchema,
+  updateDailyNotesSchema,
+  balanceEggConfigSchema,
+  measurementsListSchema,
 } from "../dto/measurements";
 
 const router = Router();
 
 router
-  .route("/list")
-  .get(validateDTO(listSchema, "query"), controllers.measurements.getList);
-
-router
-  .route("/update-mood")
-  .post(
-    validateDTO(updateDailyMoodSchema),
-    controllers.measurements.postUpdateDailyMood,
+  .route("/measurements-list")
+  .get(
+    validateDTO(measurementsListSchema, "query"),
+    controllers.measurements.getMeasurementsList,
   );
-router.route("/update-pain").post(controllers.measurements.postUpdateDailyPain);
+
+// router
+//   .route("/update-mood")
+//   .post(
+//     validateDTO(updateDailyMoodSchema),
+//     controllers.measurements.postUpdateDailyEmotions,
+//   );
 router
-  .route("/update-feeling")
-  .post(controllers.measurements.postUpdateDailyFeeling);
+  .route("/balance-egg-config")
+  .get(
+    validateDTO(balanceEggConfigSchema, "query"),
+    controllers.measurements.getBalanceEggConfig,
+  );
 router
   .route("/update-apple-health")
   .post(

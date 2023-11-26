@@ -2,11 +2,24 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import createDatesObject from "@controllers/measurements/helpers/createDatesObject";
+import { UsersDailyMeasurements } from "@models/users_daily_measurements";
 import { Measurements } from "@models/measurements";
-import { UsersDailyAutoMeasurements } from "@models/users_daily_auto_measurements";
 import { Users } from "@models/users";
-import { MEASUREMENT_SOURCES } from "@constants/measurements";
+import {
+  MEASUREMENT_CODES,
+  MEASUREMENT_SOURCES,
+} from "@constants/measurements";
+import extractObjectFieldFromArray from "@helpers/extractObjectFieldFromArray";
 import createMeasurementsUpdateObject from "@controllers/measurements/helpers/createMeasurementsUpdateObject";
+import mongoose, { ClientSession } from "mongoose";
+import {
+  saveSleepSamples,
+  ISleepSample,
+} from "@controllers/measurements/helpers/saveSleepSamples";
+import {
+  IActivitySample,
+  saveActivitySamples,
+} from "@controllers/measurements/helpers/saveActivitySamples";
 
 export interface HealthValue {
   id?: string;
@@ -17,7 +30,7 @@ export interface HealthValue {
 }
 interface RequestBody {
   lastSyncDate: string;
-  data: Array<{ [key: string]: HealthValue[] }>;
+  data: Array<{ [key: string]: HealthValue[] | ISleepSample[] }>;
 }
 const postUpdateAppleHealth = async (req: ExtendedRequest, res: Response) => {
   const responseJSON = {
@@ -25,6 +38,7 @@ const postUpdateAppleHealth = async (req: ExtendedRequest, res: Response) => {
     error: "",
     errorCode: "",
   };
+  let mongoSession: ClientSession | undefined;
   try {
     const { usersID } = req;
     const { lastSyncDate, data } = req.body as RequestBody;
@@ -40,20 +54,51 @@ const postUpdateAppleHealth = async (req: ExtendedRequest, res: Response) => {
       { code: true, unit: true, _id: true },
     );
 
-    const { datesObject, datesArray } = createDatesObject(
+    const extractedSleepSamples = extractObjectFieldFromArray(
       data,
+      MEASUREMENT_CODES.SLEEP,
+    ) as ISleepSample[];
+    const extractedExerciseSamples = extractObjectFieldFromArray(
+      data,
+      MEASUREMENT_CODES.ACTIVITY,
+    ) as IActivitySample[];
+
+    if (extractedExerciseSamples && extractedExerciseSamples?.length) {
+      await saveActivitySamples(
+        extractedExerciseSamples as IActivitySample[],
+        usersID!,
+        MEASUREMENT_SOURCES.APPLE_HEALTH,
+      );
+    }
+    if (extractedSleepSamples && extractedSleepSamples?.length) {
+      await saveSleepSamples(
+        extractedSleepSamples as ISleepSample[],
+        usersID!,
+        MEASUREMENT_SOURCES.APPLE_HEALTH,
+      );
+    }
+    const measurementsArray = createDatesObject(
+      data as { [key: string]: HealthValue[] }[],
       measurementsConfig,
       MEASUREMENT_SOURCES.APPLE_HEALTH,
     );
+
     const measurementsToUpdate = createMeasurementsUpdateObject(
-      datesArray,
-      datesObject,
+      measurementsArray,
       usersID!,
       lastSyncDate,
     );
-
-    await UsersDailyAutoMeasurements.bulkWrite(measurementsToUpdate);
-    await Users.updateOne({ _id: usersID }, { lastSyncDate: new Date() });
+    mongoSession = await mongoose.connection.startSession();
+    await mongoSession.withTransaction(async () => {
+      await UsersDailyMeasurements.bulkWrite(measurementsToUpdate, {
+        session: mongoSession,
+      });
+      await Users.updateOne(
+        { _id: usersID },
+        { lastSyncDate: new Date() },
+        { session: mongoSession },
+      );
+    });
 
     responseJSON.success = true;
     return res.status(200).json(responseJSON);

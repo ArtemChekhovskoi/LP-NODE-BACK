@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { logger } from "@logger/index";
 
 class ApiError {
   constructor(
@@ -33,6 +34,8 @@ const apiErrorsHandler = (
     responseJSON.errorCode = err.code;
     return res.status(err.status).json(responseJSON);
   }
+  logger.error(`Error in ${req.method} ${req.originalUrl}`);
+  logger.error(err);
   responseJSON.error = "Unexpected error";
   responseJSON.errorCode = "UNEXPECTED_ERROR";
   return res.status(500).json(responseJSON);

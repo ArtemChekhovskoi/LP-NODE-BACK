@@ -3,4 +3,17 @@ const MEASUREMENT_SOURCES = {
   GOOGLE_FIT: "googleFit",
 };
 
-export { MEASUREMENT_SOURCES };
+const SLEEP_VALUES = {
+  ASLEEP: "ASLEEP",
+  AWAKE: "AWAKE",
+  IN_BED: "IN_BED",
+};
+
+const MEASUREMENT_CODES = {
+  SLEEP: "sleep",
+  ACTIVITY: "activity",
+};
+
+const MINUTES_IN_DAY = 1440;
+
+export { MEASUREMENT_SOURCES, SLEEP_VALUES, MINUTES_IN_DAY, MEASUREMENT_CODES };

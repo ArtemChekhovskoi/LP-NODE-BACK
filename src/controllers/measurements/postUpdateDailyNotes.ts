@@ -2,7 +2,8 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import getStartOfDay from "@helpers/getStartOfTheDay";
-import { UsersDailyCustomMeasurements } from "@models/users_daily_custom_measurments";
+import { UsersDailyNotes } from "@models/users_daily_notes";
+import dayjs from "dayjs";
 
 const postUpdateDailyNotes = async (req: ExtendedRequest, res: Response) => {
   const responseJSON = {
@@ -14,24 +15,19 @@ const postUpdateDailyNotes = async (req: ExtendedRequest, res: Response) => {
     const { notes, date } = req.body;
     const { usersID } = req;
 
+    if (dayjs(date).add(2, "day") < dayjs() || dayjs(date) > dayjs()) {
+      responseJSON.error = "You can't edit notes after 2 days or future days";
+      responseJSON.errorCode = "CANT_EDIT";
+      return res.status(400).json(responseJSON);
+    }
+
     const startOfTheDate = getStartOfDay(new Date(date));
-    await UsersDailyCustomMeasurements.updateOne(
+
+    await UsersDailyNotes.updateOne(
+      { usersID, date: startOfTheDate },
       {
-        usersID,
-        date: startOfTheDate,
-      },
-      {
-        $set: {
-          lastUpdated: new Date(),
-        },
-        $push: {
-          measurements: {
-            code: "notes",
-            customFields: {
-              notes,
-            },
-          },
-        },
+        notes,
+        lastUpdated: new Date(),
       },
       { upsert: true },
     );

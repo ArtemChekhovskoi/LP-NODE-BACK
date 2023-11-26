@@ -58,7 +58,7 @@ const users = new Schema(
     },
     registrationStep: {
       type: String,
-      enum: ["new", "gender", "connectApp", "location", "complete"],
+      enum: ["gender", "connectApp", "location", "complete"],
     },
     lastSyncDate: {
       type: Date,

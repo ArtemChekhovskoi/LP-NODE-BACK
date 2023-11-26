@@ -34,7 +34,12 @@ const updateDailyNotesSchema = yup.object({
   date: dateValidation().required(),
 });
 
-const listSchema = yup.object({
+const balanceEggConfigSchema = yup.object({
+  startDate: dateValidation().required(),
+  endDate: dateValidation().required(),
+});
+
+const measurementsListSchema = yup.object({
   startDate: dateValidation().required(),
   endDate: dateValidation().required(),
 });
@@ -43,6 +48,7 @@ export {
   updateDailyMoodSchema,
   updateDailyWeatherSchema,
   updateDailyNotesSchema,
-  listSchema,
+  balanceEggConfigSchema,
+  measurementsListSchema,
   updateAppleHealthSchema,
 };
