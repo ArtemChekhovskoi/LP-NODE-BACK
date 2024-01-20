@@ -63,6 +63,12 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
       return res.status(400).json(responseJSON);
     }
 
+    logger.info(
+      `Getting patterns for user ${usersID}. Data: ${JSON.stringify(
+        req.query,
+      )}`,
+    );
+
     const measurementsConfig = await Measurements.find(
       {
         active: true,

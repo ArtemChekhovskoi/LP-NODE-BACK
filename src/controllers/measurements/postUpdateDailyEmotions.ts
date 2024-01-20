@@ -27,6 +27,12 @@ const postUpdateDailyEmotions = async (req: ExtendedRequest, res: Response) => {
       return res.status(404).json(responseJSON);
     }
 
+    logger.info(
+      `Updating daily emotions for user ${usersID}. Data: ${JSON.stringify(
+        req.body,
+      )}`,
+    );
+
     await UsersDailyEmotions.updateOne(
       { usersID, date: timeOnStartOfTheDay },
       { emotionsID, lastUpdated: new Date() },

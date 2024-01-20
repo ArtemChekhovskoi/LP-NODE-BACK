@@ -21,6 +21,12 @@ const postUpdateDailyNotes = async (req: ExtendedRequest, res: Response) => {
       return res.status(400).json(responseJSON);
     }
 
+    logger.info(
+      `Updating daily notes for user ${usersID}. Data: ${JSON.stringify(
+        req.body,
+      )}`,
+    );
+
     const startOfTheDate = getStartOfDay(new Date(date));
 
     await UsersDailyNotes.updateOne(
