@@ -24,7 +24,7 @@ const postUpdateDailyWeather = async (req: ExtendedRequest, res: Response) => {
       return res.status(400).json(responseJSON);
     }
 
-    const { weather, location } = weatherInfo;
+    const { weather, location, icon } = weatherInfo;
     await UsersDailyWeather.updateOne(
       {
         usersID,
@@ -38,6 +38,7 @@ const postUpdateDailyWeather = async (req: ExtendedRequest, res: Response) => {
           humidity: weather?.humidity,
           wind_kph: weather?.wind,
           lastUpdated: new Date(),
+          icon: `https:${icon}`,
         },
       },
       { upsert: true },
@@ -47,7 +48,7 @@ const postUpdateDailyWeather = async (req: ExtendedRequest, res: Response) => {
     responseJSON.data = weatherInfo.weather;
     return res.status(200).json(responseJSON);
   } catch (e) {
-    logger.error(`Error at controllers/user/postUpdateDailyWeather: ${e}`);
+    logger.error(`Error at controllers/user/postUpdateDailyWeather: ${e}`, e);
     responseJSON.error = "Something went wrong";
     responseJSON.errorCode = "SOMETHING_WRONG";
     return res.status(500).json(responseJSON);

@@ -49,7 +49,7 @@ const saveActivitySamples = async (
         },
         update: {
           lastUpdated: new Date(),
-          value: sample.activeEnergyBurned,
+          value: sample.appleExerciseTime,
           source: measurementSource,
         },
         upsert: true,

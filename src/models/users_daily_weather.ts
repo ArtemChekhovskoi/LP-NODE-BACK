@@ -42,6 +42,9 @@ const usersDailyWeather = new Schema(
       type: Number,
       required: true,
     },
+    icon: {
+      type: String,
+    },
     lastUpdated: {
       type: Date,
       required: true,

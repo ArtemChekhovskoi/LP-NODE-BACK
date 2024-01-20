@@ -1,11 +1,9 @@
 import * as yup from "yup";
 import { dateValidation } from "./commonMethods";
 
-const updateDailyMoodSchema = yup.object({
-  mood: yup.string().required(),
-  moodLevel: yup.number().required().min(0).max(100),
-  date: yup.string().required(),
-  measurementCode: yup.string().required(),
+const updateDailyEmotionsSchema = yup.object({
+  date: dateValidation().required(),
+  emotionsID: yup.string().required(),
 });
 
 const updateDailyWeatherSchema = yup.object({
@@ -45,7 +43,7 @@ const measurementsListSchema = yup.object({
 });
 
 export {
-  updateDailyMoodSchema,
+  updateDailyEmotionsSchema,
   updateDailyWeatherSchema,
   updateDailyNotesSchema,
   balanceEggConfigSchema,

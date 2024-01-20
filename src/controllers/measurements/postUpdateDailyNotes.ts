@@ -31,6 +31,7 @@ const postUpdateDailyNotes = async (req: ExtendedRequest, res: Response) => {
       },
       { upsert: true },
     );
+    responseJSON.success = true;
     return res.status(200).json(responseJSON);
   } catch (e) {
     logger.error(

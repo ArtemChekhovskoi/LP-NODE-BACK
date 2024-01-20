@@ -14,6 +14,7 @@ const getDailyWeather = async (long: number, lat: number) => {
         error: "No data",
       };
     }
+
     return {
       success: true,
       date: data.forecast.forecastday[0].date,
@@ -28,6 +29,7 @@ const getDailyWeather = async (long: number, lat: number) => {
         humidity: data.current?.humidity,
         wind: data.current?.wind_kph,
       },
+      icon: data.current?.condition.icon,
     };
   } catch (e) {
     logger.error(`Error at helpers/getDailyWeather: ${e}`);

@@ -13,6 +13,7 @@ const notifications = new Schema({
   screen: {
     type: String,
     required: true,
+    enum: ["main/today", "main/patterns", "main/trends"],
   },
   title: {
     type: String,

@@ -42,7 +42,6 @@ const checkAuth = async (
       if (typeof jwtData === "string") {
         throw new Error(`Jwt data is incorrect ${jwtData}`);
       }
-
       if (!jwtData.sessionID) {
         throw new Error(`SessionID in token is missing ${token}`);
       }
@@ -56,7 +55,6 @@ const checkAuth = async (
       }
 
       const sessionsID = new ObjectId(jwtData.sessionID);
-
       const session = await Sessions.findOne({
         _id: sessionsID,
         active: true,
@@ -92,7 +90,7 @@ const checkAuth = async (
       req.token = token;
       return next();
     }
-    throw new Error();
+    throw new Error("No auth token provided");
   } catch (e: any) {
     logger.error(`Error in middleware/checkAuth: ${e}`);
     logger.error(e);

@@ -20,7 +20,7 @@ interface IEmotionConfig {
 }
 
 interface IResponseData {
-  measurements: { [key: string]: IMeasurementConfig };
+  measurements: IMeasurementConfig[];
   emotions: IEmotionConfig[];
 }
 
@@ -30,7 +30,7 @@ const getGlobalConfig = async (req: ExtendedRequest, res: Response) => {
     error: "",
     errorCode: "",
     data: {
-      measurements: {},
+      measurements: [],
       emotions: [],
     },
   };
@@ -38,12 +38,20 @@ const getGlobalConfig = async (req: ExtendedRequest, res: Response) => {
     const [measurementsConfig, emotionsConfig] = await Promise.all([
       await Measurements.find(
         { active: true },
-        { code: true, unit: true, precision: true, _id: false },
+        { code: true, unit: true, name: true, precision: true, _id: false },
       ).lean(),
       await EmotionsConfig.find(
         { active: true },
-        { emotion: true, emoji: true, _id: true, color: true },
-      ).lean(),
+        {
+          emotion: true,
+          emoji: true,
+          _id: true,
+          color: true,
+          colorOnActive: true,
+        },
+      )
+        .sort({ sort: 1 })
+        .lean(),
     ]);
     if (!measurementsConfig.length || !emotionsConfig.length) {
       responseJSON.error = "Not found config";
@@ -51,15 +59,7 @@ const getGlobalConfig = async (req: ExtendedRequest, res: Response) => {
       return res.status(404).json(responseJSON);
     }
 
-    const measurementsObject = measurementsConfig.reduce(
-      (acc: { [key: string]: IMeasurementConfig }, item) => {
-        acc[item.code] = item;
-        delete acc[item.code].code;
-        return acc;
-      },
-      {},
-    );
-    responseJSON.data.measurements = measurementsObject;
+    responseJSON.data.measurements = measurementsConfig;
     responseJSON.data.emotions = emotionsConfig;
     responseJSON.success = true;
     return res.status(200).json(responseJSON);

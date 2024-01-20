@@ -49,6 +49,8 @@ const postUpdateAppleHealth = async (req: ExtendedRequest, res: Response) => {
       return res.status(400).json(responseJSON);
     }
 
+    logger.info(JSON.stringify(data));
+
     const measurementsConfig = await Measurements.find(
       { type: "auto" },
       { code: true, unit: true, _id: true },

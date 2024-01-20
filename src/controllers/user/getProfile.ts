@@ -18,6 +18,7 @@ const getProfile = async (req: ExtendedRequest, res: Response) => {
       {
         name: true,
         email: true,
+        gender: true,
         registrationStep: true,
         appsConnected: true,
         lastSyncDate: true,

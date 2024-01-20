@@ -11,6 +11,9 @@ import {
   IDataPresentationByDate,
 } from "@constants/patterns";
 import calculateAverageByDate from "@controllers/patterns/helpers/calculateAverageByDate";
+import generateDatesArray from "@helpers/generateDatesArray";
+import { getMeasurementsScale } from "@controllers/patterns/helpers/getMeasurementsScale";
+import dayjs from "dayjs";
 
 const { ObjectId } = Types;
 interface RequestQuery {
@@ -31,8 +34,18 @@ export interface IPatternsListResponseData {
   }>;
 }
 
+export interface IPatternsListResponseWithScales
+  extends IPatternsListResponseData {
+  scale: number[];
+  minScaleValue: number;
+  maxScaleValue: number;
+  maxMultiplier: number;
+}
+
 const getPatternsList = async (req: ExtendedRequest, res: Response) => {
-  const responseJSON: IResponseWithData<IPatternsListResponseData[] | []> = {
+  const responseJSON: IResponseWithData<
+    IPatternsListResponseWithScales[] | []
+  > = {
     success: false,
     error: "",
     errorCode: "",
@@ -42,7 +55,6 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
     const { startDate, endDate, measurements, presentation } =
       req.query as unknown as RequestQuery;
     const { usersID } = req;
-
     const measurementsArray = parseArrayInQuery(measurements);
 
     if (!measurementsArray.length) {
@@ -68,15 +80,14 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
       responseJSON.errorCode = "INVALID_MEASUREMENTS";
       return res.status(400).json(responseJSON);
     }
-
-    let measurementsData = await Promise.all(
+    const measurementsData = await Promise.all(
       measurementsConfig.map(async (item) => {
         const measurementsByDate = await UsersDailyMeasurements.find(
           {
             usersID: new ObjectId(usersID),
             date: {
-              $gte: new Date(startDate),
-              $lte: new Date(endDate),
+              $gte: startDate,
+              $lte: endDate,
             },
             measurementCode: item.code,
           },
@@ -98,12 +109,38 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
       }),
     );
 
-    if (presentation !== DATA_PRESENTATION.DAY) {
-      measurementsData = calculateAverageByDate(measurementsData, presentation);
-    }
+    const dateArray = generateDatesArray(
+      new Date(startDate),
+      new Date(endDate),
+    );
+    let preparedData = measurementsData.map((measurementInfo) => {
+      const result: {
+        value: number;
+        date: Date;
+      }[] = [];
+      dateArray.forEach((date) => {
+        const actualMeasurement = measurementInfo.measurements.find(
+          (measurement) => {
+            return dayjs(measurement?.date)
+              .startOf("day")
+              .isSame(dayjs(date).startOf("day"));
+          },
+        );
+        if (actualMeasurement) {
+          result.push(actualMeasurement);
+        } else {
+          result.push({ date, value: 0 });
+        }
+      });
+      return { ...measurementInfo, measurements: result };
+    });
 
+    if (presentation !== DATA_PRESENTATION.DAY) {
+      preparedData = calculateAverageByDate(preparedData, presentation);
+    }
+    const dataWithScales = getMeasurementsScale(preparedData);
     responseJSON.success = true;
-    responseJSON.data = measurementsData;
+    responseJSON.data = dataWithScales;
     return res.status(200).json(responseJSON);
   } catch (e) {
     logger.error(`Error in controllers/getPatternsList: ${e}`);

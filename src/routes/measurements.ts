@@ -3,7 +3,7 @@ import controllers from "@controllers/index";
 import { validateDTO } from "@middlewares/validateDTO";
 import {
   updateAppleHealthSchema,
-  // updateDailyMoodSchema,
+  updateDailyEmotionsSchema,
   updateDailyWeatherSchema,
   updateDailyNotesSchema,
   balanceEggConfigSchema,
@@ -19,12 +19,16 @@ router
     controllers.measurements.getMeasurementsList,
   );
 
-// router
-//   .route("/update-mood")
-//   .post(
-//     validateDTO(updateDailyMoodSchema),
-//     controllers.measurements.postUpdateDailyEmotions,
-//   );
+router
+  .route("/daily-measurements")
+  .get(controllers.measurements.getDailyMeasurements);
+
+router
+  .route("/update-daily-emotions")
+  .post(
+    validateDTO(updateDailyEmotionsSchema),
+    controllers.measurements.postUpdateDailyEmotions,
+  );
 router
   .route("/balance-egg-config")
   .get(

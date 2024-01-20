@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const { execSync } = require("child_process");
 const measurements = require("./measurements");
+const emotionsConfig = require("./emotions");
 
 const runExec = (cmd) =>
   execSync(cmd, (error) => {
@@ -13,7 +14,7 @@ const DB_NAME = "Main";
 
 const URI_LOCAL = `mongodb://localhost:27017,localhost:27018,localhost:27019/${DB_NAME}`;
 
-const COLLECTIONS = [measurements];
+const COLLECTIONS = [measurements, emotionsConfig];
 
 const createNewDump = () => {
   // eslint-disable-next-line no-restricted-syntax

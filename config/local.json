@@ -29,7 +29,7 @@
   },
   "mongo": {
     "main": {
-      "uri": "mongodb://mongo:27017/Main",
+      "uri": "mongodb://localhost:27017,localhost:27018,localhost:27019/Main",
       "options": {
         "authSource": "admin",
         "auth": null

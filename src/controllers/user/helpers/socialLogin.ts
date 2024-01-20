@@ -1,15 +1,13 @@
-import validator from "validator";
 import { Users } from "@models/users";
 import { Request, Response } from "express";
 import { IGoogleProfile, SocialType } from "@controllers/user/postGoogleSignin";
+import createSha512Hash from "@helpers/createSha512Hash";
 import { generateAuthToken } from "./generateAuthToken";
 
 interface ISocialLoginReturn {
   accessToken: string;
   usersID: string;
   registrationStep?: string;
-  name: string;
-  email: string;
   appsConnected: string[] | [];
   lastSyncDate: Date;
 }
@@ -20,13 +18,10 @@ const socialLogin = async (
   socialFieldName: SocialType,
 ): Promise<ISocialLoginReturn> => {
   const clientData = { userAgent: req.headers["user-agent"] };
-  const isEmailValid = profile.email && validator.isEmail(profile.email);
-  const profileEmail = isEmailValid ? `${profile.email}`.toLowerCase() : "";
-  const profileId = `${profile.id}` || "";
-  const profileName = profile.name || "";
+  const hashedProfileId = createSha512Hash(`${profile.id}`) || "";
 
   const searchOption = {
-    socialAccounts: { [socialFieldName]: profileId },
+    socialAccounts: { [socialFieldName]: hashedProfileId },
     active: true,
   };
   const userBySocialId = await Users.findOne(searchOption);
@@ -42,18 +37,14 @@ const socialLogin = async (
       registrationStep: userBySocialId.registrationStep,
       appsConnected: userBySocialId.appsConnected,
       lastSyncDate: userBySocialId.lastSyncDate || new Date(),
-      name: userBySocialId.name,
-      email: userBySocialId.email,
     };
   }
 
   // Opt: User not exists, so creating new user
   const newUser = new Users({
-    email: profileEmail,
     socialAccounts: {
-      [socialFieldName]: profileId,
+      [socialFieldName]: hashedProfileId,
     },
-    name: profileName,
     created: new Date(),
     lastUpdated: new Date(),
     active: true,
@@ -74,8 +65,6 @@ const socialLogin = async (
     registrationStep: savedNewUser.registrationStep,
     lastSyncDate: savedNewUser.lastSyncDate || new Date(),
     appsConnected: [],
-    name: savedNewUser.name,
-    email: savedNewUser.email,
   };
 };
 

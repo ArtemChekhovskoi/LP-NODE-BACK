@@ -1,13 +1,13 @@
-import getStartOfDay from "@helpers/getStartOfTheDay";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 
-const generateDatesArray = (startDate: string, endDate: string) => {
+dayjs.extend(utc);
+
+const generateDatesArray = (startDate: Date, endDate: Date) => {
   const datesArray = [];
-  const currentDate = getStartOfDay(startDate);
-  const stopDate = getStartOfDay(endDate);
-
-  while (currentDate <= stopDate) {
-    datesArray.push(new Date(currentDate));
-    currentDate.setDate(currentDate.getDate() + 1);
+  while (startDate <= endDate) {
+    datesArray.push(new Date(startDate));
+    startDate.setDate(startDate.getDate() + 1);
   }
   return datesArray;
 };

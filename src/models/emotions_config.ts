@@ -14,6 +14,10 @@ const emotionsConfig = new Schema(
       type: String,
       required: true,
     },
+    colorOnActive: {
+      type: String,
+      required: true,
+    },
     sort: {
       type: Number,
       required: true,

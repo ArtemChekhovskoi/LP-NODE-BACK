@@ -13,20 +13,12 @@ const users = new Schema(
         type: String,
       },
     },
-    name: {
-      type: String,
-      required: true,
-    },
     created: {
       type: Date,
       required: true,
     },
     lastUpdated: {
       type: Date,
-      required: true,
-    },
-    email: {
-      type: String,
       required: true,
     },
     active: {
