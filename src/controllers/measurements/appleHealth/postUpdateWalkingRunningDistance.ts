@@ -33,6 +33,8 @@ const postUpdateWalkingRunningDistance = async (req: ExtendedRequest, res: Respo
 			return res.status(400).json(responseJSON);
 		}
 
+		logger.info(`Walking running distance: ${JSON.stringify(walkingRunningDistance)}`);
+
 		await saveSimpleAppleValueArray(walkingRunningDistance, measurementsConfig, usersID!);
 
 		responseJSON.success = true;

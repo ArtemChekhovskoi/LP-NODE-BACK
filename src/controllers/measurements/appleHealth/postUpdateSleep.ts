@@ -25,6 +25,8 @@ const postUpdateSleep = async (req: ExtendedRequest, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
+		logger.info(`Sleep: ${JSON.stringify(sleep)}`);
+
 		const measurementsConfig = (await Measurements.findOne({ code: MEASUREMENT_CODES.SLEEP }, { code: true, unit: true, _id: true })) as IMeasurementsConfig;
 
 		if (!measurementsConfig) {

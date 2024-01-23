@@ -25,6 +25,8 @@ const postUpdateSteps = async (req: ExtendedRequest, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
+		logger.info(`Steps rate: ${JSON.stringify(steps)}`);
+
 		const measurementsConfig = (await Measurements.findOne({ code: MEASUREMENT_CODES.STEPS }, { code: true, unit: true, _id: true })) as IMeasurementsConfig;
 
 		if (!measurementsConfig) {

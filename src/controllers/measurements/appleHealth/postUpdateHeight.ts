@@ -25,6 +25,8 @@ const postUpdateHeight = async (req: ExtendedRequest, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
+		logger.info(`Height rate: ${JSON.stringify(height)}`);
+
 		const measurementsConfig = (await Measurements.findOne({ code: MEASUREMENT_CODES.HEIGHT }, { code: true, unit: true, _id: true })) as IMeasurementsConfig;
 
 		if (!measurementsConfig) {

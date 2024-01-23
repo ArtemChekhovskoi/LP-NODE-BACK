@@ -33,6 +33,8 @@ const postUpdateWeight = async (req: ExtendedRequest, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
+		logger.info(`Weight: ${JSON.stringify(weight)}`);
+
 		await saveSimpleAppleValueArray(weight, measurementsConfig, usersID!);
 
 		responseJSON.success = true;
