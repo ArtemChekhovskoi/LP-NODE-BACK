@@ -5,11 +5,6 @@ import { getPatternsListSchema } from "../dto/patterns";
 
 const router = Router();
 
-router
-  .route("/patterns-list")
-  .get(
-    validateDTO(getPatternsListSchema, "query"),
-    controllers.patterns.getPatternsList,
-  );
+router.route("/patterns-list").get(validateDTO(getPatternsListSchema, "query"), controllers.patterns.getPatternsList);
 
 export default router;

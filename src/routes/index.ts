@@ -10,8 +10,8 @@ import main from "@routes/main";
 const router = Router();
 
 router.use((req, res, next) => {
-  res.setHeader("Content-Type", "application/json");
-  return next();
+	res.setHeader("Content-Type", "application/json");
+	return next();
 });
 router.use(checkAuth);
 
@@ -20,8 +20,6 @@ router.use("/measurements", measurementsRouter);
 router.use("/notifications", notifications);
 router.use("/patterns", patterns);
 router.use("/main", main);
-router.use("/health-check", (req, res) =>
-  res.status(200).json({ success: true }),
-);
+router.use("/health-check", (req, res) => res.status(200).json({ success: true }));
 
 export default router;
