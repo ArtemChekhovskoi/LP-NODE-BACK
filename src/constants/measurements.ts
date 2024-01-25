@@ -11,6 +11,7 @@ const SLEEP_VALUES = {
 
 const MEASUREMENT_CODES = {
 	SLEEP: "sleep",
+	IN_BED: "inBedTime",
 	ACTIVITY: "activity",
 	HEIGHT: "height",
 	WEIGHT: "weight",

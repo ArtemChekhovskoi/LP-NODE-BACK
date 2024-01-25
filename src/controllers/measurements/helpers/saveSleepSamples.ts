@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 
 const { ObjectId } = Types;
 
-type SleepType = "ASLEEP" | "INBED" | "AWAKE";
+type SleepType = "ASLEEP" | "INBED";
 interface ISleepSample {
 	startDate: Date;
 	endDate: Date;
@@ -15,7 +15,9 @@ interface ISleepSample {
 	sourceName: string;
 }
 
-const getSleepInfo = (sleepStartDate: Date, sleepEndDate: Date) => {
+const TRACKED_SLEEP_TYPES = ["ASLEEP", "INBED"];
+
+const getSleepInfo = (sleepStartDate: Date, sleepEndDate: Date, value: SleepType) => {
 	const startDate = dayjs(sleepStartDate);
 	const endDate = dayjs(sleepEndDate);
 	const cutoffHour = 5;
@@ -24,21 +26,20 @@ const getSleepInfo = (sleepStartDate: Date, sleepEndDate: Date) => {
 	const startOfDay = getStartOfDay(assignDate.toISOString());
 	const durationMinutes = endDate.diff(startDate, "minutes");
 
-	return { startOfDay, durationMinutes };
+	return { startOfDay, durationMinutes, code: value === "ASLEEP" ? MEASUREMENT_CODES.SLEEP : MEASUREMENT_CODES.IN_BED };
 };
 
 const saveSleepSamples = async (samples: ISleepSample[], usersID: string) => {
-	// TODO: make cutoff hours to properly save date
 	const asleepTimeWithDay = samples
-		.filter((sample) => sample.value === "ASLEEP")
-		.map((sample) => getSleepInfo(sample.startDate, sample.endDate));
+		.filter((sample) => TRACKED_SLEEP_TYPES.includes(sample.value))
+		.map((sample) => getSleepInfo(sample.startDate, sample.endDate, sample.value));
 	const sleepMeasurementsBulkWrite = asleepTimeWithDay.map((sample) => {
 		return {
 			updateOne: {
 				filter: {
 					usersID: new ObjectId(usersID),
 					date: sample.startOfDay,
-					measurementCode: MEASUREMENT_CODES.SLEEP,
+					measurementCode: sample.code,
 				},
 				update: {
 					$inc: {
@@ -49,9 +50,6 @@ const saveSleepSamples = async (samples: ISleepSample[], usersID: string) => {
 			},
 		};
 	});
-	const inBedTime = samples
-		.filter((sample) => sample.value === "INBED")
-		.reduce((acc, curr) => acc + new Date(curr.endDate).getTime() - new Date(curr.startDate).getTime(), 0);
 	const usersDailySleepArray = samples.map((sample) => {
 		const { startDate, endDate, value, sourceName } = sample;
 		const date = getStartOfDay(sample.startDate);
