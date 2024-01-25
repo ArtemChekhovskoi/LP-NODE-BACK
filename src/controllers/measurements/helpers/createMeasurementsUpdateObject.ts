@@ -9,6 +9,8 @@ const createMeasurementsUpdateObject = (measurementsArray: IMeasurementObject[],
 					usersID: new Types.ObjectId(usersID),
 					measurementCode: measurement.code,
 					date: new Date(measurement.date),
+					startDate: measurement.startDate,
+					endDate: measurement.endDate,
 				},
 				update: {
 					$set: {

@@ -3,6 +3,7 @@ import { UsersDailySleep } from "@models/users_daily_sleep";
 import { Types } from "mongoose";
 import { MEASUREMENT_CODES } from "@constants/measurements";
 import { UsersDailyMeasurements } from "@models/users_daily_measurements";
+import dayjs from "dayjs";
 
 const { ObjectId } = Types;
 
@@ -14,10 +15,43 @@ interface ISleepSample {
 	sourceName: string;
 }
 
+const getSleepInfo = (sleepStartDate: Date, sleepEndDate: Date) => {
+	const startDate = dayjs(sleepStartDate);
+	const endDate = dayjs(sleepEndDate);
+	const cutoffHour = 5;
+
+	const assignDate = startDate.hour() < cutoffHour ? startDate : startDate.add(1, "day");
+	const startOfDay = getStartOfDay(assignDate.toISOString());
+	const durationMinutes = endDate.diff(startDate, "minutes");
+
+	return { startOfDay, durationMinutes };
+};
+
 const saveSleepSamples = async (samples: ISleepSample[], usersID: string) => {
 	// TODO: make cutoff hours to properly save date
-	const asleepTime = samples.filter((sample) => sample.value === "ASLEEP").reduce((acc, curr) => acc + curr.endDate.getTime() - curr.startDate.getTime(), 0);
-	const inBedTime = samples.filter((sample) => sample.value === "INBED").reduce((acc, curr) => acc + curr.endDate.getTime() - curr.startDate.getTime(), 0);
+	const asleepTimeWithDay = samples
+		.filter((sample) => sample.value === "ASLEEP")
+		.map((sample) => getSleepInfo(sample.startDate, sample.endDate));
+	const sleepMeasurementsBulkWrite = asleepTimeWithDay.map((sample) => {
+		return {
+			updateOne: {
+				filter: {
+					usersID: new ObjectId(usersID),
+					date: sample.startOfDay,
+					measurementCode: MEASUREMENT_CODES.SLEEP,
+				},
+				update: {
+					$inc: {
+						value: sample.durationMinutes,
+					},
+				},
+				upsert: true,
+			},
+		};
+	});
+	const inBedTime = samples
+		.filter((sample) => sample.value === "INBED")
+		.reduce((acc, curr) => acc + new Date(curr.endDate).getTime() - new Date(curr.startDate).getTime(), 0);
 	const usersDailySleepArray = samples.map((sample) => {
 		const { startDate, endDate, value, sourceName } = sample;
 		const date = getStartOfDay(sample.startDate);
@@ -39,22 +73,7 @@ const saveSleepSamples = async (samples: ISleepSample[], usersID: string) => {
 		};
 	});
 
-	await Promise.all([
-		UsersDailySleep.bulkWrite(usersDailySleepArray),
-		UsersDailyMeasurements.updateOne(
-			{
-				usersID: new ObjectId(usersID),
-				date: getStartOfDay(samples[0].startDate),
-				measurementCode: MEASUREMENT_CODES.SLEEP,
-			},
-			{
-				lastUpdated: new Date(),
-				value: asleepTime,
-				source: samples[0].sourceName,
-			},
-			{ upsert: true }
-		),
-	]);
+	await Promise.all([UsersDailySleep.bulkWrite(usersDailySleepArray), UsersDailyMeasurements.bulkWrite(sleepMeasurementsBulkWrite)]);
 };
 
 export { saveSleepSamples, SleepType, ISleepSample };

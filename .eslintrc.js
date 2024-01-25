@@ -16,6 +16,7 @@ module.exports = {
         "@typescript-eslint",
     ],
     "rules": {
+        "no-param-reassign": "off",
         "import/no-cycle": "off",
         "react/jsx-filename-extension": "off",
         "linebreak-style": 0,

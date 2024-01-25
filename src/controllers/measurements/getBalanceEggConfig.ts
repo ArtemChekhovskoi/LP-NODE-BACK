@@ -3,9 +3,9 @@ import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 
 import { UsersDailyActivity } from "@models/users_daily_activity";
-import { UsersDailySleep } from "@models/users_daily_sleep";
-import { MINUTES_IN_DAY, SLEEP_VALUES } from "@constants/measurements";
+import { MEASUREMENT_CODES, MINUTES_IN_DAY } from "@constants/measurements";
 import generateDatesArray from "@helpers/generateDatesArray";
+import { UsersDailyMeasurements } from "@models/users_daily_measurements";
 
 interface RequestQuery {
 	startDate: string;
@@ -44,9 +44,9 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 				usersID,
 				date: { $gte: new Date(startDate), $lte: new Date(endDate) },
 			}).lean(),
-			UsersDailySleep.find({
+			UsersDailyMeasurements.find({
 				usersID,
-				value: SLEEP_VALUES.ASLEEP,
+				measurementCode: MEASUREMENT_CODES.SLEEP,
 				date: { $gte: new Date(startDate), $lte: new Date(endDate) },
 			}).lean(),
 		]);
@@ -62,14 +62,14 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 				const sleepSample = sleep.filter((sleepItem) => sleepItem.date.toISOString() === date.toISOString());
 
 				if (activitySample.length && sleepSample.length) {
-					sleepTime = 500;
+					sleepTime = sleepSample[0].value;
 					activityTime = activitySample[0].exerciseTimeMinutes;
 					inactiveTime = MINUTES_IN_DAY - sleepTime - activityTime;
 					notTrackedTime = 0;
 				}
 
 				if (!activitySample.length && sleepSample.length) {
-					sleepTime = 500;
+					sleepTime = sleepSample[0].value;
 					inactiveTime = MINUTES_IN_DAY - sleepTime;
 					notTrackedTime = 0;
 				}

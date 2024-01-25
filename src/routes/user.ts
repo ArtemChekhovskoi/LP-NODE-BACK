@@ -1,7 +1,13 @@
 import { Router } from "express";
 import controllers from "@controllers/index";
 import { validateDTO } from "@middlewares/validateDTO";
-import { postGoogleSignInSchema, postUpdateAppsConnectedSchema, postUpdateGenderSchema, postUpdateRegistrationStepSchema } from "../dto/users";
+import {
+	postGoogleSignInSchema,
+	postUpdateAppsConnectedSchema,
+	postUpdateGenderSchema,
+	postUpdateLastSyncDateSchema,
+	postUpdateRegistrationStepSchema,
+} from "../dto/users";
 
 const router = Router();
 
@@ -12,5 +18,6 @@ router.route("/logout").post(controllers.user.postLogOut);
 router.route("/update-gender").post(validateDTO(postUpdateGenderSchema), controllers.user.postUpdateGender);
 router.route("/update-apps-connected").post(validateDTO(postUpdateAppsConnectedSchema), controllers.user.postUpdateAppsConnected);
 router.route("/update-registration-step").post(validateDTO(postUpdateRegistrationStepSchema), controllers.user.postUpdateRegistrationStep);
+router.route("/update-last-sync-date").post(validateDTO(postUpdateLastSyncDateSchema), controllers.user.postUpdateLastSyncDate);
 
 export default router;
