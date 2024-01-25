@@ -15,8 +15,8 @@ export interface IMeasurementObject {
 	code: string;
 	value: number;
 	source: string;
-	startDate?: string;
-	endDate?: string;
+	startDate: string;
+	endDate: string;
 }
 const createDatesObject = (data: HealthValue[], config: IMeasurementsConfig, measurementSource: string) => {
 	const measurementsArray: IMeasurementObject[] = [];
