@@ -25,6 +25,10 @@ const usersDailySleep = new Schema(
 			type: String,
 			required: true,
 		},
+		sourceName: {
+			type: String,
+			required: true,
+		},
 		lastUpdated: {
 			type: Date,
 			required: true,

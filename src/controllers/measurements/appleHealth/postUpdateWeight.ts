@@ -25,15 +25,16 @@ const postUpdateWeight = async (req: ExtendedRequest, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
-		const measurementsConfig = (await Measurements.findOne({ code: MEASUREMENT_CODES.WEIGHT }, { code: true, unit: true, _id: true })) as IMeasurementsConfig;
+		const measurementsConfig = (await Measurements.findOne(
+			{ code: MEASUREMENT_CODES.WEIGHT },
+			{ code: true, unit: true, _id: true }
+		)) as IMeasurementsConfig;
 
 		if (!measurementsConfig) {
 			responseJSON.error = "No config found";
 			responseJSON.errorCode = "NO_CONFIG_FOUND";
 			return res.status(400).json(responseJSON);
 		}
-
-		logger.info(`Weight: ${JSON.stringify(weight)}`);
 
 		await saveSimpleAppleValueArray(weight, measurementsConfig, usersID!);
 

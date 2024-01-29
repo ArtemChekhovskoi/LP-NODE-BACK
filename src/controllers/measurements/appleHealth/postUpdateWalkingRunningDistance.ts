@@ -25,15 +25,16 @@ const postUpdateWalkingRunningDistance = async (req: ExtendedRequest, res: Respo
 			return res.status(400).json(responseJSON);
 		}
 
-		const measurementsConfig = (await Measurements.findOne({ code: MEASUREMENT_CODES.WALKING_RUNNING_DISTANCE }, { code: true, unit: true, _id: true })) as IMeasurementsConfig;
+		const measurementsConfig = (await Measurements.findOne(
+			{ code: MEASUREMENT_CODES.WALKING_RUNNING_DISTANCE },
+			{ code: true, unit: true, _id: true }
+		)) as IMeasurementsConfig;
 
 		if (!measurementsConfig) {
 			responseJSON.error = "No config found";
 			responseJSON.errorCode = "NO_CONFIG_FOUND";
 			return res.status(400).json(responseJSON);
 		}
-
-		logger.info(`Walking running distance: ${JSON.stringify(walkingRunningDistance)}`);
 
 		await saveSimpleAppleValueArray(walkingRunningDistance, measurementsConfig, usersID!);
 
