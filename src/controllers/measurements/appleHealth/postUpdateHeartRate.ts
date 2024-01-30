@@ -5,10 +5,12 @@ import { IMeasurementsConfig } from "@controllers/measurements/helpers/createDat
 import { Measurements } from "@models/measurements";
 import { HealthValue, MEASUREMENT_CODES } from "@constants/measurements";
 import saveSimpleAppleValueArray from "@controllers/measurements/helpers/saveSimpleAppleValueArray";
+import filterMeasurementsByPeriod from "@controllers/measurements/helpers/filterMeasurementsByPeriod";
 
 interface RequestBody {
 	heartRate: HealthValue[];
 }
+
 const postUpdateHeartRate = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
 		success: false,
@@ -27,7 +29,10 @@ const postUpdateHeartRate = async (req: ExtendedRequest, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
-		const measurementsConfig = (await Measurements.findOne({ code: MEASUREMENT_CODES.HEART_RATE }, { code: true, unit: true, _id: true })) as IMeasurementsConfig;
+		const measurementsConfig = (await Measurements.findOne(
+			{ code: MEASUREMENT_CODES.HEART_RATE },
+			{ code: true, unit: true, _id: true }
+		)) as IMeasurementsConfig;
 
 		if (!measurementsConfig) {
 			responseJSON.error = "No config found";
@@ -35,7 +40,9 @@ const postUpdateHeartRate = async (req: ExtendedRequest, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
-		await saveSimpleAppleValueArray(heartRate, measurementsConfig, usersID!);
+		const filteredHeartRate = filterMeasurementsByPeriod(heartRate);
+
+		await saveSimpleAppleValueArray(filteredHeartRate, measurementsConfig, usersID!);
 
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);

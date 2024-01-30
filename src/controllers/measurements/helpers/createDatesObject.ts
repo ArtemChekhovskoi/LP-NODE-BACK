@@ -5,6 +5,7 @@ import { HealthValue } from "@constants/measurements";
 export interface IMeasurementsConfig {
 	code: string;
 	unit: string;
+	precision?: number;
 	_id: Types.ObjectId;
 }
 

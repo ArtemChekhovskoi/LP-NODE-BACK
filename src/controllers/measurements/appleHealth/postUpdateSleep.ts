@@ -9,6 +9,7 @@ import { ISleepSample, saveSleepSamples } from "@controllers/measurements/helper
 interface RequestBody {
 	sleep: ISleepSample[];
 }
+
 const postUpdateSleep = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
 		success: false,
@@ -25,9 +26,10 @@ const postUpdateSleep = async (req: ExtendedRequest, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
-		logger.info(`Sleep: ${JSON.stringify(sleep)}`);
-
-		const measurementsConfig = (await Measurements.findOne({ code: MEASUREMENT_CODES.SLEEP }, { code: true, unit: true, _id: true })) as IMeasurementsConfig;
+		const measurementsConfig = (await Measurements.findOne(
+			{ code: MEASUREMENT_CODES.SLEEP },
+			{ code: true, unit: true, precision: true, _id: true }
+		)) as IMeasurementsConfig;
 
 		if (!measurementsConfig) {
 			responseJSON.error = "No config found";
@@ -35,7 +37,7 @@ const postUpdateSleep = async (req: ExtendedRequest, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
-		await saveSleepSamples(sleep, usersID!);
+		await saveSleepSamples(sleep, usersID!, measurementsConfig);
 
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);

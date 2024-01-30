@@ -21,7 +21,6 @@ const usersDailySleep = new Schema(
 			required: true,
 		},
 		value: {
-			enum: ["ASLEEP", "INBED", "AWAKE"],
 			type: String,
 			required: true,
 		},
