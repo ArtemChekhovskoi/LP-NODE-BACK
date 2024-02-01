@@ -55,7 +55,6 @@ const saveSleepSamples = async (samples: ISleepSample[], usersID: string, measur
 	const trackedSleepMeasurements = samples.filter((sample) => TRACKED_SLEEP_TYPES.includes(sample.value));
 	const preparedSamples = sumSleepByDate(trackedSleepMeasurements);
 
-	console.log("preparedSamples", preparedSamples);
 	const sleepMeasurementsBulkWrite = preparedSamples.map((sample) => {
 		return {
 			updateOne: {
