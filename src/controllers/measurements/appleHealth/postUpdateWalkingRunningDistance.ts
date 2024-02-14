@@ -44,7 +44,7 @@ const postUpdateWalkingRunningDistance = async (req: ExtendedRequest, res: Respo
 		const distancePerDay = sumMeasurementsByDay(walkingRunningDistance);
 		const stepsBulkWrite = distancePerDay.map((distanceByDate) => ({
 			updateOne: {
-				filter: { usersID: new ObjectId(usersID), code: MEASUREMENT_CODES.STEPS, date: new Date(distanceByDate.date) },
+				filter: { usersID: new ObjectId(usersID), measurementCode: MEASUREMENT_CODES.STEPS, date: new Date(distanceByDate.date) },
 				update: {
 					$inc: { value: distanceByDate.value },
 					$set: { lastUpdated: new Date() },
