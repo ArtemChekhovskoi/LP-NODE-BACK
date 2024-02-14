@@ -12,6 +12,7 @@ const postUpdateLastSyncDate = async (req: ExtendedRequest, res: Response) => {
 	try {
 		const { lastSyncDate } = req.body;
 		const { usersID } = req;
+		logger.info(`Updating last sync date for user ${usersID} and setting it to ${lastSyncDate}`);
 
 		await Users.updateOne({ _id: usersID }, { lastSyncDate, lastUpdated: new Date() });
 
