@@ -44,7 +44,7 @@ const postUpdateSteps = async (req: ExtendedRequest, res: Response) => {
 		const stepsPerDay = sumMeasurementsByDay(steps);
 		const stepsBulkWrite = stepsPerDay.map((stepsByDate) => ({
 			updateOne: {
-				filter: { usersID: new ObjectId(usersID), code: MEASUREMENT_CODES.STEPS, date: new Date(stepsByDate.date) },
+				filter: { usersID: new ObjectId(usersID), measurementCode: MEASUREMENT_CODES.STEPS, date: new Date(stepsByDate.date) },
 				update: {
 					$inc: { value: stepsByDate.value },
 					$set: { lastUpdated: new Date() },
