@@ -5,7 +5,7 @@ FROM node
 RUN mkdir -p /usr/app
 WORKDIR /usr/app
 
-COPY package.json package-lock.json ./
+COPY package.json ./
 
 # Copy all files
 RUN npm install
