@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "NODE_ENV=development ts-node-dev --respawn -r tsconfig-paths/register src/index.ts",
     "start:local": "NODE_ENV=local ts-node-dev --respawn -r tsconfig-paths/register src/index.ts",
-    "build": "tsc"
+    "start": "NODE_ENV=production node dist/src/index.js",
+    "build": "tsc && tsc-alias"
   },
   "keywords": [],
   "author": "",
@@ -59,6 +60,7 @@
     "stylelint-config-standard-scss": "^6.1.0",
     "stylelint-prettier": "^2.0.0",
     "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.8.8",
     "tsconfig-paths": "^4.2.0"
   }
 }
