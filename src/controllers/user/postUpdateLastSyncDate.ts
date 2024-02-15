@@ -2,6 +2,9 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import { Users } from "@models/users";
+import { Types } from "mongoose";
+
+const { ObjectId } = Types;
 
 const postUpdateLastSyncDate = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
@@ -14,7 +17,7 @@ const postUpdateLastSyncDate = async (req: ExtendedRequest, res: Response) => {
 		const { usersID } = req;
 		logger.info(`Updating last sync date for user ${usersID} and setting it to ${lastSyncDate}`);
 
-		await Users.updateOne({ _id: usersID }, { lastSyncDate, lastUpdated: new Date() });
+		await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate, lastUpdated: new Date() });
 
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);
