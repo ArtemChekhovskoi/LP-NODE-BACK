@@ -20,7 +20,7 @@ const postUpdateSleep = async (req: ExtendedRequest, res: Response) => {
 		const { usersID } = req;
 		const { sleep } = req.body as RequestBody;
 
-		logger.info(`Start postUpdateSleep. Sleep length: ${sleep?.length}`);
+		logger.info(`Start postUpdateSleep. Sleep length: ${sleep?.length}. Example: ${JSON.stringify(sleep[0])}`);
 
 		if (!sleep || sleep.length === 0) {
 			responseJSON.error = "Nothing to sync";

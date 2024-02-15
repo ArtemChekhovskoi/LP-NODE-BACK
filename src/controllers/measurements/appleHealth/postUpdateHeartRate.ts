@@ -21,7 +21,7 @@ const postUpdateHeartRate = async (req: ExtendedRequest, res: Response) => {
 		const { usersID } = req;
 		const { heartRate } = req.body as RequestBody;
 
-		logger.info(`Start postUpdateHeartRate. Heart rate length: ${heartRate?.length}`);
+		logger.info(`Start postUpdateHeartRate. Heart rate length: ${heartRate?.length}. Example: ${JSON.stringify(heartRate[0])}`);
 
 		if (!heartRate || heartRate.length === 0) {
 			responseJSON.error = "Nothing to sync";

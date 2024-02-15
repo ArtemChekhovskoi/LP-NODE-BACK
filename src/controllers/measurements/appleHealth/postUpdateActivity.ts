@@ -18,7 +18,7 @@ const postUpdateActivity = async (req: ExtendedRequest, res: Response) => {
 	try {
 		const { usersID } = req;
 		const { activity } = req.body as RequestBody;
-		logger.info(`Start postUpdateActivity. Activity length: ${activity?.length}`);
+		logger.info(`Start postUpdateActivity. Activity length: ${activity?.length}. Example: ${JSON.stringify(activity[0])}`);
 
 		if (!activity || activity.length === 0) {
 			responseJSON.error = "Nothing to sync";

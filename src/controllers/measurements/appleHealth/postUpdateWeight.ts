@@ -18,7 +18,7 @@ const postUpdateWeight = async (req: ExtendedRequest, res: Response) => {
 	try {
 		const { usersID } = req;
 		const { weight } = req.body as RequestBody;
-		logger.info(`Start postUpdateWeight. Weight length: ${weight?.length}`);
+		logger.info(`Start postUpdateWeight. Weight length: ${weight?.length}. Example: ${JSON.stringify(weight[0])}`);
 
 		if (!weight || weight.length === 0) {
 			responseJSON.error = "Nothing to sync";

@@ -19,7 +19,7 @@ const postUpdateHeight = async (req: ExtendedRequest, res: Response) => {
 		const { usersID } = req;
 		const { height } = req.body as RequestBody;
 
-		logger.info(`Start postUpdateHeight. Height length: ${height?.length}`);
+		logger.info(`Start postUpdateHeight. Height length: ${height?.length}. Example: ${JSON.stringify(height[0])}`);
 
 		if (!height || height.length === 0) {
 			responseJSON.error = "Nothing to sync";

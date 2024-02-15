@@ -23,7 +23,7 @@ const postUpdateSteps = async (req: ExtendedRequest, res: Response) => {
 	try {
 		const { usersID } = req;
 		const { steps } = req.body as RequestBody;
-		logger.info(`Start postUpdateSteps. Steps length: ${steps?.length}`);
+		logger.info(`Start postUpdateSteps. Steps length: ${steps?.length}. Example: ${JSON.stringify(steps[0])}`);
 
 		if (!steps || steps.length === 0) {
 			responseJSON.error = "Nothing to sync";
