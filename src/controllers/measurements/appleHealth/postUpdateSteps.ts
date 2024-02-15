@@ -23,6 +23,7 @@ const postUpdateSteps = async (req: ExtendedRequest, res: Response) => {
 	try {
 		const { usersID } = req;
 		const { steps } = req.body as RequestBody;
+		logger.info(`Start postUpdateSteps. Steps length: ${steps?.length}`);
 
 		if (!steps || steps.length === 0) {
 			responseJSON.error = "Nothing to sync";
@@ -61,6 +62,7 @@ const postUpdateSteps = async (req: ExtendedRequest, res: Response) => {
 		});
 
 		await mongoSession.endSession();
+		logger.info(`End postUpdateSteps`);
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);
 	} catch (e) {

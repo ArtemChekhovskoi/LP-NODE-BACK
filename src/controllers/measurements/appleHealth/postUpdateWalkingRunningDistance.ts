@@ -23,6 +23,7 @@ const postUpdateWalkingRunningDistance = async (req: ExtendedRequest, res: Respo
 	try {
 		const { usersID } = req;
 		const { walkingRunningDistance } = req.body as RequestBody;
+		logger.info(`Start postUpdateWalkingRunningDistance. Walking running distance length: ${walkingRunningDistance?.length}`);
 
 		if (!walkingRunningDistance || walkingRunningDistance.length === 0) {
 			responseJSON.error = "Nothing to sync";
@@ -61,6 +62,7 @@ const postUpdateWalkingRunningDistance = async (req: ExtendedRequest, res: Respo
 		});
 
 		await mongoSession.endSession();
+		logger.info(`End postUpdateWalkingRunningDistance`);
 
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);

@@ -20,6 +20,8 @@ const postUpdateSleep = async (req: ExtendedRequest, res: Response) => {
 		const { usersID } = req;
 		const { sleep } = req.body as RequestBody;
 
+		logger.info(`Start postUpdateSleep. Sleep length: ${sleep?.length}`);
+
 		if (!sleep || sleep.length === 0) {
 			responseJSON.error = "Nothing to sync";
 			responseJSON.errorCode = "MISSING_DATA";
@@ -38,6 +40,7 @@ const postUpdateSleep = async (req: ExtendedRequest, res: Response) => {
 		}
 
 		await saveSleepSamples(sleep, usersID!, measurementsConfig);
+		logger.info(`End postUpdateSleep`);
 
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);

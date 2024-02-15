@@ -18,6 +18,7 @@ const postUpdateWeight = async (req: ExtendedRequest, res: Response) => {
 	try {
 		const { usersID } = req;
 		const { weight } = req.body as RequestBody;
+		logger.info(`Start postUpdateWeight. Weight length: ${weight?.length}`);
 
 		if (!weight || weight.length === 0) {
 			responseJSON.error = "Nothing to sync";
@@ -38,6 +39,7 @@ const postUpdateWeight = async (req: ExtendedRequest, res: Response) => {
 
 		await saveSimpleAppleValueArray(weight, measurementsConfig, usersID!);
 
+		logger.info(`End postUpdateWeight`);
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);
 	} catch (e) {

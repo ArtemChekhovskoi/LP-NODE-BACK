@@ -21,7 +21,7 @@ const postUpdateHeartRate = async (req: ExtendedRequest, res: Response) => {
 		const { usersID } = req;
 		const { heartRate } = req.body as RequestBody;
 
-		logger.info(`Heart rate: ${JSON.stringify(heartRate)}`);
+		logger.info(`Start postUpdateHeartRate. Heart rate length: ${heartRate?.length}`);
 
 		if (!heartRate || heartRate.length === 0) {
 			responseJSON.error = "Nothing to sync";
@@ -44,6 +44,7 @@ const postUpdateHeartRate = async (req: ExtendedRequest, res: Response) => {
 
 		await saveSimpleAppleValueArray(filteredHeartRate, measurementsConfig, usersID!);
 
+		logger.info(`End postUpdateHeartRate`);
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);
 	} catch (e) {

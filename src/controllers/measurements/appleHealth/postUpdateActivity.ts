@@ -18,14 +18,13 @@ const postUpdateActivity = async (req: ExtendedRequest, res: Response) => {
 	try {
 		const { usersID } = req;
 		const { activity } = req.body as RequestBody;
+		logger.info(`Start postUpdateActivity. Activity length: ${activity?.length}`);
 
 		if (!activity || activity.length === 0) {
 			responseJSON.error = "Nothing to sync";
 			responseJSON.errorCode = "MISSING_DATA";
 			return res.status(400).json(responseJSON);
 		}
-
-		logger.info(`Activity: ${JSON.stringify(activity)}`);
 
 		const measurementsConfig = (await Measurements.findOne(
 			{ code: MEASUREMENT_CODES.ACTIVITY },
@@ -39,6 +38,7 @@ const postUpdateActivity = async (req: ExtendedRequest, res: Response) => {
 		}
 
 		await saveActivitySamples(activity, usersID!);
+		logger.info(`End postUpdateActivity`);
 
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);
