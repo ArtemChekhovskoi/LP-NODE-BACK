@@ -43,6 +43,7 @@ const postUpdateSteps = async (req: ExtendedRequest, res: Response) => {
 		}
 
 		const stepsPerDay = sumMeasurementsByDay(steps);
+		logger.info(`Steps per day: ${JSON.stringify(stepsPerDay)}`);
 		const stepsBulkWrite = stepsPerDay.map((stepsByDate) => ({
 			updateOne: {
 				filter: { usersID: new ObjectId(usersID), measurementCode: MEASUREMENT_CODES.STEPS, date: new Date(stepsByDate.date) },

@@ -7,6 +7,7 @@ import validator from "validator";
 import { UsersDailyMeasurements } from "@models/users_daily_measurements";
 import getStartOfDay from "@helpers/getStartOfTheDay";
 import { Types } from "mongoose";
+import { calculateAverageMeasurement } from "@helpers/calculateAverageMeasurement";
 
 const { ObjectId } = Types;
 
@@ -14,13 +15,14 @@ type RequestQuery = {
 	date?: string;
 };
 
-type Measurement = {
+export type ReturnedDailyMeasurement = {
 	value: number;
 	unit: string;
 	name: string;
+	precision: number;
 };
 
-type IResponseData = Measurement[] | [];
+type IResponseData = ReturnedDailyMeasurement[] | [];
 const getDailyMeasurements = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON: IResponseWithData<IResponseData> = {
 		success: false,
@@ -42,7 +44,7 @@ const getDailyMeasurements = async (req: ExtendedRequest, res: Response) => {
 			date: getStartOfDay(new Date(date)),
 		};
 
-		const measurements = await UsersDailyMeasurements.aggregate([
+		const measurements: ReturnedDailyMeasurement[] = await UsersDailyMeasurements.aggregate([
 			{
 				$match: filter,
 			},
@@ -64,17 +66,44 @@ const getDailyMeasurements = async (req: ExtendedRequest, res: Response) => {
 					unit: "$measurementData.unit",
 					name: "$measurementData.name",
 					precision: "$measurementData.precision",
+					isOnePerDay: "$measurementData.isOnePerDay",
 				},
 			},
 		]);
-		const measurementsWithPrecision = measurements.map((measurement) => {
-			const { precision } = measurement;
-			if (precision) {
-				measurement.value = Number(measurement.value.toFixed(precision));
+
+		if (!measurements || measurements.length === 0) {
+			responseJSON.error = "No data found";
+			responseJSON.errorCode = "NO_DATA_FOUND";
+			return res.status(400).json(responseJSON);
+		}
+
+		const reducedMeasurements = measurements.reduce(
+			(acc, measurement) => {
+				const { name, value, unit, precision } = measurement;
+				if (acc[name]) {
+					acc[name].push({ value, unit, precision, name });
+				} else {
+					acc[name] = [{ value, unit, precision, name }];
+				}
+				return acc;
+			},
+			{} as Record<string, ReturnedDailyMeasurement[]>
+		);
+
+		const preparedMeasurements = Object.values(reducedMeasurements).map((dailyMeasurements) => {
+			let measurement = dailyMeasurements[0];
+			if (dailyMeasurements.length > 1) {
+				measurement = calculateAverageMeasurement(dailyMeasurements);
 			}
-			return measurement;
+
+			const { precision, value } = measurement;
+			return {
+				...measurement,
+				value: Number(value.toFixed(precision)),
+			};
 		});
-		responseJSON.data = measurementsWithPrecision as IResponseData | [];
+
+		responseJSON.data = preparedMeasurements;
 		return res.status(200).json(responseJSON);
 	} catch (e) {
 		logger.error(`Error in getDailyMeasurements: ${e}`, e);
