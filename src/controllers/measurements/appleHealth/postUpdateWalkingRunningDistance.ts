@@ -45,9 +45,13 @@ const postUpdateWalkingRunningDistance = async (req: ExtendedRequest, res: Respo
 		}
 
 		const distancePerDay = sumMeasurementsByDay(walkingRunningDistance);
-		const stepsBulkWrite = distancePerDay.map((distanceByDate) => ({
+		const distanceBulkWrite = distancePerDay.map((distanceByDate) => ({
 			updateOne: {
-				filter: { usersID: new ObjectId(usersID), measurementCode: MEASUREMENT_CODES.STEPS, date: new Date(distanceByDate.date) },
+				filter: {
+					usersID: new ObjectId(usersID),
+					measurementCode: MEASUREMENT_CODES.WALKING_RUNNING_DISTANCE,
+					date: new Date(distanceByDate.date),
+				},
 				update: {
 					$inc: { value: distanceByDate.value },
 					$set: { lastUpdated: new Date() },
@@ -58,7 +62,7 @@ const postUpdateWalkingRunningDistance = async (req: ExtendedRequest, res: Respo
 
 		mongoSession = await mongoose.connection.startSession();
 		await mongoSession.withTransaction(async () => {
-			await UsersDailyMeasurements.bulkWrite(stepsBulkWrite, {
+			await UsersDailyMeasurements.bulkWrite(distanceBulkWrite, {
 				session: mongoSession as ClientSession,
 			});
 		});
