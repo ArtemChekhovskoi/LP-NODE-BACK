@@ -18,6 +18,8 @@ const MEASUREMENT_CODES = {
 	STEPS: "steps",
 	HEART_RATE: "heartRate",
 	WALKING_RUNNING_DISTANCE: "walkingRunningDistance",
+	SLEEP_QUALITY: "sleepQuality",
+	ACTIVITY_FEELING: "activityFeeling",
 };
 
 const MINUTES_IN_DAY = 1440;

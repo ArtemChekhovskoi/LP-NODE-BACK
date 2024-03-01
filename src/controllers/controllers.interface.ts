@@ -1,11 +1,11 @@
 interface IResponseBasic {
-  error: string;
-  errorCode: string;
-  success: boolean;
+	error: string;
+	errorCode: string;
+	success: boolean;
 }
 
 interface IResponseWithData<T> extends IResponseBasic {
-  data: T;
+	data: T;
 }
 
 export { IResponseBasic, IResponseWithData };

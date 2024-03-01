@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { logger } from "@logger/index";
 import { Types } from "mongoose";
-import dayjs from "dayjs";
 
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import getStartOfDay from "@helpers/getStartOfTheDay";
@@ -19,20 +18,8 @@ const getProfile = async (req: ExtendedRequest, res: Response) => {
 	};
 	try {
 		const { usersID } = req;
-		let { localTime } = req.query as { localTime: string };
 
-		if (!localTime || !dayjs(localTime).isValid()) {
-			localTime = new Date().toISOString();
-		}
-		// let date = new Date();
-		// const timeDifference = dayjs(localTime).diff(new Date());
-		// if (dayjs(localTime).isBefore(dayjs(new Date()).set("hour", 19 + timeDifference.hours()))) {
-		// 	date = getStartOfDay(dayjs(new Date()).subtract(1, "day").toISOString());
-		// } else {
-		// 	date = getStartOfDay(dayjs(new Date()).toISOString());
-		// }
-		// console.log(date);
-
+		const date = getStartOfDay(new Date());
 		const [userProfile, usersReflection] = await Promise.all([
 			Users.findOne(
 				{ _id: usersID },
@@ -44,14 +31,14 @@ const getProfile = async (req: ExtendedRequest, res: Response) => {
 					appsConnected: true,
 					lastSyncDate: true,
 				}
-			),
+			).lean(),
 			UsersDailyReflections.findOne(
-				{ usersID: new ObjectId(usersID) },
+				{ usersID: new ObjectId(usersID), date },
 				{
 					isMorningReflectionDone: true,
 					isEveningReflectionDone: true,
 				}
-			),
+			).lean(),
 		]);
 
 		if (!userProfile) {
@@ -65,6 +52,7 @@ const getProfile = async (req: ExtendedRequest, res: Response) => {
 			isMorningReflectionDone: usersReflection?.isMorningReflectionDone || false,
 			isEveningReflectionDone: usersReflection?.isEveningReflectionDone || false,
 		};
+		console.log("responseJSON", responseJSON);
 		responseJSON.success = true;
 		return res.json(responseJSON);
 	} catch (e) {
