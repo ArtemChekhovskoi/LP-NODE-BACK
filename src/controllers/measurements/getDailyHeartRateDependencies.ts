@@ -34,7 +34,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 
 		const startOfTheDay = getStartOfDay(new Date(date));
 
-		const [heartRateConfig, usersHeartRate, usersSleep, usersActivity] = await Promise.all([
+		const [heartRateConfig, usersHeartRate] = await Promise.all([
 			Measurements.findOne(
 				{ code: MEASUREMENT_CODES.HEART_RATE },
 				{ code: true, name: true, unit: true, precision: true, _id: true }
