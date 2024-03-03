@@ -23,7 +23,6 @@ const postUpdateSteps = async (req: ExtendedRequest, res: Response) => {
 	try {
 		const { usersID } = req;
 		const { steps } = req.body as RequestBody;
-		logger.info(`Start postUpdateSteps. Steps length: ${steps?.length}. Example: ${JSON.stringify(steps[0])}`);
 
 		if (!steps || steps.length === 0) {
 			responseJSON.error = "Nothing to sync";
@@ -43,7 +42,6 @@ const postUpdateSteps = async (req: ExtendedRequest, res: Response) => {
 		}
 
 		const stepsPerDay = sumMeasurementsByDay(steps);
-		logger.info(`Steps per day: ${JSON.stringify(stepsPerDay)}`);
 		const stepsBulkWrite = stepsPerDay.map((stepsByDate) => ({
 			updateOne: {
 				filter: { usersID: new ObjectId(usersID), measurementCode: MEASUREMENT_CODES.STEPS, date: new Date(stepsByDate.date) },
@@ -63,7 +61,6 @@ const postUpdateSteps = async (req: ExtendedRequest, res: Response) => {
 		});
 
 		await mongoSession.endSession();
-		logger.info(`End postUpdateSteps`);
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);
 	} catch (e) {

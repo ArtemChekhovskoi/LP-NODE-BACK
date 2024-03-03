@@ -19,8 +19,6 @@ const postUpdateHeight = async (req: ExtendedRequest, res: Response) => {
 		const { usersID } = req;
 		const { height } = req.body as RequestBody;
 
-		logger.info(`Start postUpdateHeight. Height length: ${height?.length}. Example: ${JSON.stringify(height[0])}`);
-
 		if (!height || height.length === 0) {
 			responseJSON.error = "Nothing to sync";
 			responseJSON.errorCode = "MISSING_DATA";
@@ -40,7 +38,6 @@ const postUpdateHeight = async (req: ExtendedRequest, res: Response) => {
 
 		await saveSimpleAppleValueArray(height, measurementsConfig, usersID!);
 
-		logger.info(`End postUpdateHeight`);
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);
 	} catch (e) {

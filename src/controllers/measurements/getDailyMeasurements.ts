@@ -72,9 +72,7 @@ const getDailyMeasurements = async (req: ExtendedRequest, res: Response) => {
 		]);
 
 		if (!measurements || measurements.length === 0) {
-			responseJSON.error = "No data found";
-			responseJSON.errorCode = "NO_DATA_FOUND";
-			return res.status(400).json(responseJSON);
+			return res.status(200).json(responseJSON);
 		}
 
 		const reducedMeasurements = measurements.reduce(
