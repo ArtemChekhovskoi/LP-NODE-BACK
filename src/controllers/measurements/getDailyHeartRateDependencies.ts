@@ -16,6 +16,15 @@ dayjs.extend(isBetween);
 interface RequestQuery {
 	date: string;
 }
+
+interface SleepValue {
+	value: string;
+	startDate: Date;
+	endDate: Date;
+}
+
+const MINUTES_IN_DAY = 1440;
+
 const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
 		success: false,
@@ -33,8 +42,9 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 		}
 
 		const startOfTheDay = getStartOfDay(new Date(date));
+		const startOfPrevDay = dayjs(startOfTheDay).subtract(1, "day").toDate();
 
-		const [heartRateConfig, usersHeartRate] = await Promise.all([
+		const [heartRateConfig, usersHeartRate, usersDailySleep] = await Promise.all([
 			Measurements.findOne(
 				{ code: MEASUREMENT_CODES.HEART_RATE },
 				{ code: true, name: true, unit: true, precision: true, _id: true }
@@ -45,13 +55,52 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			)
 				.lean()
 				.sort({ startDate: 1 }),
-			UsersDailySleep.findOne({ usersID, date: startOfTheDay }).lean(),
+			UsersDailySleep.find({ usersID, date: { $in: [startOfPrevDay, startOfTheDay] } }).lean(),
 			UsersDailyActivity.find({ usersID, date: startOfTheDay }).lean(),
 		]);
 
 		if (!heartRateConfig) {
 			throw new Error("No heart rate config found");
 		}
+
+		let sleepBySourceName: SleepValue[] = [];
+		if (usersDailySleep && usersDailySleep.length) {
+			const sleepReducedBySourceName = usersDailySleep.reduce(
+				(acc, item) => {
+					if (!item.sourceName) return acc;
+					if (!acc[item.sourceName]) {
+						acc[item.sourceName] = [item];
+						return acc;
+					}
+					acc[item.sourceName].push(item);
+					return acc;
+				},
+				{} as { [sourceName: string]: SleepValue[] }
+			);
+			// eslint-disable-next-line prefer-destructuring
+			sleepBySourceName = Object.values(sleepReducedBySourceName)[0];
+		}
+
+		const sleepWithPercentages = sleepBySourceName
+			.map((sleep) => {
+				if (dayjs(sleep.startDate).isBefore(dayjs(startOfTheDay)) && dayjs(sleep.endDate).isBefore(dayjs(startOfTheDay))) {
+					return;
+				}
+				const sleepStart = dayjs(sleep.startDate).isBefore(startOfTheDay) ? dayjs(startOfTheDay) : dayjs(sleep.startDate);
+
+				const sleepDuration = dayjs(sleep.endDate).diff(sleepStart, "minute");
+				const sleepStartPercentage = (dayjs(sleepStart).diff(startOfTheDay, "minute") / MINUTES_IN_DAY).toFixed(2);
+				let sleepEndPercentage = +(+sleepStartPercentage + sleepDuration / MINUTES_IN_DAY).toFixed(2);
+				if (sleepEndPercentage > 1) {
+					sleepEndPercentage = 1.0;
+				}
+				// eslint-disable-next-line consistent-return
+				return {
+					startPercentage: +sleepStartPercentage,
+					endPercentage: +sleepEndPercentage,
+				};
+			})
+			.filter((sleep) => sleep);
 
 		const heartRatePrepared = [
 			{
@@ -89,7 +138,11 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			dayTime = dayTime.add(30, "minutes");
 		}
 
-		responseJSON.data = { heartRate: { ...heartRateWithScales, measurements: heartRateWithZeroValues }, sleep: {}, activity: {} };
+		responseJSON.data = {
+			heartRate: { ...heartRateWithScales, measurements: heartRateWithZeroValues },
+			sleep: sleepWithPercentages,
+			activity: {},
+		};
 		return res.status(200).json(responseJSON);
 	} catch (e) {
 		logger.error(`Error in getDailyHeartRateDependencies: ${e}`, e);

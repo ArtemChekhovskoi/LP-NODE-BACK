@@ -2,3 +2,4 @@
 config/local.json
 dist
 docker
+examples

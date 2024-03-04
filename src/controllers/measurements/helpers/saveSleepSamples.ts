@@ -1,6 +1,6 @@
 import getStartOfDay from "@helpers/getStartOfTheDay";
 import { UsersDailySleep } from "@models/users_daily_sleep";
-import { Types } from "mongoose";
+import { ClientSession, Types } from "mongoose";
 import { UsersDailyMeasurements } from "@models/users_daily_measurements";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
@@ -17,44 +17,56 @@ interface ISleepSample {
 	sourceName: string;
 }
 
-const TRACKED_SLEEP_TYPES = ["ASLEEP", "INBED"];
+interface ISleepSumAcc {
+	date: string;
+	source: string;
+	duration: number;
+}
 
-const sumSleepByDate = (measurements: ISleepSample[]): { date: string; durationMinutes: number }[] => {
-	const result: { [date: string]: number } = measurements.reduce(
+const TRACKED_SLEEP_TYPES = ["INBED"];
+
+const sumSleepByDate = (measurements: ISleepSample[]): { date: string; durationMinutes: number; source: string }[] => {
+	const result: { [date: string]: ISleepSumAcc } = measurements.reduce(
 		(acc, measurement) => {
 			const measurementStartDate = dayjs(measurement.startDate);
 			const measurementEndDate = dayjs(measurement.endDate);
 			const dateKey = getStartOfDay(measurementStartDate.add(4, "hours").toDate()).toISOString();
+			const { sourceName } = measurement;
 
-			if (acc[dateKey] === undefined) {
-				acc[dateKey] = 0;
+			if (acc[`${sourceName}-${dateKey}`] === undefined) {
+				acc[`${sourceName}-${dateKey}`] = {
+					date: dateKey,
+					source: sourceName,
+					duration: dayjs.duration(measurementEndDate.diff(measurementStartDate)).asMinutes() || 0,
+				};
+				return acc;
 			}
 
-			// Handle case where user sleeps with no awakening (value="ASLEEP")
-			if (measurement.value === "ASLEEP" && measurementEndDate.isAfter(measurementStartDate)) {
-				const periodDuration = dayjs.duration(measurementEndDate.diff(measurementStartDate));
-				acc[dateKey] += periodDuration.asMinutes();
-				console.log(periodDuration.asMinutes());
-			} else {
-				// Handle other values (CORE, AWAKE, DEEP, etc.)
-				acc[dateKey] += 1; // You can modify this based on your requirements
-			}
-
+			acc[`${sourceName}-${dateKey}`].duration += dayjs.duration(measurementEndDate.diff(measurementStartDate)).asMinutes() || 0;
 			return acc;
 		},
-		{} as { [date: string]: number }
+		{} as { [date: string]: ISleepSumAcc }
 	);
 
+	console.log(result);
 	// Convert the result into an array of objects
-	const resultArray = Object.entries(result).map(([date, durationMinutes]) => ({ date, durationMinutes }));
+	const resultArray = Object.values(result).map((value) => ({
+		date: value.date,
+		durationMinutes: value.duration,
+		source: value.source,
+	}));
 
 	return resultArray;
 };
 
-const saveSleepSamples = async (samples: ISleepSample[], usersID: string, measurementConfig: IMeasurementsConfig) => {
+const saveSleepSamples = async (
+	samples: ISleepSample[],
+	usersID: string,
+	measurementConfig: IMeasurementsConfig,
+	mongoSession: ClientSession
+) => {
 	const trackedSleepMeasurements = samples.filter((sample) => TRACKED_SLEEP_TYPES.includes(sample.value));
 	const preparedSamples = sumSleepByDate(trackedSleepMeasurements);
-
 	const sleepMeasurementsBulkWrite = preparedSamples.map((sample) => {
 		return {
 			updateOne: {
@@ -62,6 +74,7 @@ const saveSleepSamples = async (samples: ISleepSample[], usersID: string, measur
 					usersID: new ObjectId(usersID),
 					date: new Date(sample.date),
 					measurementCode: measurementConfig.code,
+					source: sample.source,
 				},
 				update: {
 					$inc: {
@@ -82,13 +95,13 @@ const saveSleepSamples = async (samples: ISleepSample[], usersID: string, measur
 			updateOne: {
 				filter: {
 					startDate: new Date(startDate),
-					endDate: new Date(endDate),
-					value,
 					sourceName,
 					usersID: new ObjectId(usersID),
 					date,
 				},
 				update: {
+					value,
+					endDate: new Date(endDate),
 					lastUpdated: new Date(),
 				},
 				upsert: true,
@@ -96,7 +109,8 @@ const saveSleepSamples = async (samples: ISleepSample[], usersID: string, measur
 		};
 	});
 
-	await Promise.all([UsersDailySleep.bulkWrite(usersDailySleepArray), UsersDailyMeasurements.bulkWrite(sleepMeasurementsBulkWrite)]);
+	await UsersDailySleep.bulkWrite(usersDailySleepArray, { session: mongoSession });
+	await UsersDailyMeasurements.bulkWrite(sleepMeasurementsBulkWrite, { session: mongoSession });
 };
 
 export { saveSleepSamples, ISleepSample };
