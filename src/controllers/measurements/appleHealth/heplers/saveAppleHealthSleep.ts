@@ -11,7 +11,7 @@ const saveAppleHealthSleep = async (
 	if (!sleep || sleep.length === 0) {
 		throw new Error("No sleep data");
 	}
-
+	console.log("sleep", JSON.stringify(sleep));
 	await saveSleepSamples(sleep, usersID!, measurementsConfig, mongoSession);
 	return true;
 };
