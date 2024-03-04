@@ -1,7 +1,6 @@
 import { IMeasurementsConfig } from "@controllers/measurements/helpers/createDatesObject";
 import { ISleepSample, saveSleepSamples } from "@controllers/measurements/helpers/saveSleepSamples";
 import { ClientSession } from "mongoose";
-import { sleepExample } from "../../../../../examples/sleep";
 
 const saveAppleHealthSleep = async (
 	sleep: ISleepSample[],
@@ -13,7 +12,7 @@ const saveAppleHealthSleep = async (
 		throw new Error("No sleep data");
 	}
 
-	await saveSleepSamples(sleepExample, usersID!, measurementsConfig, mongoSession);
+	await saveSleepSamples(sleep, usersID!, measurementsConfig, mongoSession);
 	return true;
 };
 
