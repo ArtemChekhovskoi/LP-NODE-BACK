@@ -17,7 +17,6 @@ const usersDailyMeasurements = new Schema({
 	},
 	source: {
 		type: String,
-		required: true,
 	},
 	value: {
 		type: Number,

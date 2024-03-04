@@ -1,5 +1,5 @@
 import getStartOfDay from "@helpers/getStartOfTheDay";
-import { Types } from "mongoose";
+import { ClientSession, Types } from "mongoose";
 import { UsersDailyActivity } from "@models/users_daily_activity";
 import { MEASUREMENT_CODES } from "@constants/measurements";
 import { UsersDailyMeasurements } from "@models/users_daily_measurements";
@@ -17,7 +17,7 @@ interface IActivitySample {
 	sourceName?: string;
 }
 
-const saveActivitySamples = async (samples: IActivitySample[], usersID: string) => {
+const saveActivitySamples = async (samples: IActivitySample[], usersID: string, mongoSession: ClientSession) => {
 	const usersDailyActivityArray = samples.map((sample) => {
 		const startOfDay = getStartOfDay(sample.date);
 		return {
@@ -53,7 +53,8 @@ const saveActivitySamples = async (samples: IActivitySample[], usersID: string) 
 		};
 	});
 
-	await Promise.all([UsersDailyActivity.bulkWrite(usersDailyActivityArray), UsersDailyMeasurements.bulkWrite(usersMeasurementsArray)]);
+	await UsersDailyActivity.bulkWrite(usersDailyActivityArray, { session: mongoSession });
+	await UsersDailyMeasurements.bulkWrite(usersMeasurementsArray, { session: mongoSession });
 };
 
 export { saveActivitySamples, IActivitySample };

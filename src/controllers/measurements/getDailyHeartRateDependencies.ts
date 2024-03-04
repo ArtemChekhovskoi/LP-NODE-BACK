@@ -34,7 +34,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 
 		const startOfTheDay = getStartOfDay(new Date(date));
 
-		const [heartRateConfig, usersHeartRate] = await Promise.all([
+		const [heartRateConfig, usersHeartRate, usersDailySleep] = await Promise.all([
 			Measurements.findOne(
 				{ code: MEASUREMENT_CODES.HEART_RATE },
 				{ code: true, name: true, unit: true, precision: true, _id: true }
@@ -45,12 +45,31 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			)
 				.lean()
 				.sort({ startDate: 1 }),
-			UsersDailySleep.findOne({ usersID, date: startOfTheDay }).lean(),
+			UsersDailySleep.find({ usersID, date: startOfTheDay }).lean(),
 			UsersDailyActivity.find({ usersID, date: startOfTheDay }).lean(),
 		]);
 
 		if (!heartRateConfig) {
 			throw new Error("No heart rate config found");
+		}
+
+		let sleepBySourceName: unknown[] = [];
+		if (usersDailySleep && usersDailySleep.length) {
+			const sleepReducedBySourceName = usersDailySleep.reduce(
+				(acc, item) => {
+					if (!item.sourceName) return acc;
+					if (!acc[item.sourceName]) {
+						acc[item.sourceName] = [item];
+						return acc;
+					}
+					acc[item.sourceName].push(item);
+					return acc;
+				},
+				{} as { [sourceName: string]: unknown[] }
+			);
+
+			// eslint-disable-next-line prefer-destructuring
+			sleepBySourceName = sleepReducedBySourceName[0];
 		}
 
 		const heartRatePrepared = [
@@ -89,7 +108,11 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			dayTime = dayTime.add(30, "minutes");
 		}
 
-		responseJSON.data = { heartRate: { ...heartRateWithScales, measurements: heartRateWithZeroValues }, sleep: {}, activity: {} };
+		responseJSON.data = {
+			heartRate: { ...heartRateWithScales, measurements: heartRateWithZeroValues },
+			sleep: sleepBySourceName,
+			activity: {},
+		};
 		return res.status(200).json(responseJSON);
 	} catch (e) {
 		logger.error(`Error in getDailyHeartRateDependencies: ${e}`, e);
