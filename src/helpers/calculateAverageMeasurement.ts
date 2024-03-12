@@ -1,10 +1,9 @@
-import { ReturnedDailyMeasurement } from "@controllers/measurements/getDailyMeasurements";
+import { HealthValue } from "@constants/measurements";
 
-const calculateAverageMeasurement = (measurements: ReturnedDailyMeasurement[]): ReturnedDailyMeasurement => {
+const calculateAverageMeasurement = (measurements: HealthValue[]) => {
 	const numberOfMeasurements = measurements.length;
 	const sumOfMeasurements = measurements.reduce((acc, measurement) => acc + measurement.value, 0);
 	return {
-		...measurements[0],
 		value: sumOfMeasurements / numberOfMeasurements,
 	};
 };

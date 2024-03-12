@@ -2,10 +2,14 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 
-import { UsersDailyActivity } from "@models/users_daily_activity";
-import { MEASUREMENT_CODES, MINUTES_IN_DAY } from "@constants/measurements";
+import { UsersActivity } from "@models/users_activity";
+import { MINUTES_IN_DAY, ACTIVE_MEASUREMENTS } from "@constants/measurements";
 import generateDatesArray from "@helpers/generateDatesArray";
-import { UsersDailyMeasurements } from "@models/users_daily_measurements";
+import { decimalAdjust } from "@helpers/decimalAdjust";
+import getStartOfDay from "@helpers/getStartOfTheDay";
+import dayjs from "dayjs";
+import getReducedMeasurementsConfig from "@controllers/measurements/helpers/getReducedMeasurementsConfig";
+import { getMeasurementFromDailySum } from "@helpers/getMeasurementsByType";
 
 interface RequestQuery {
 	startDate: string;
@@ -24,9 +28,6 @@ interface IResponseData {
 	inactive: {
 		time: number;
 	};
-	notTracked: {
-		time: number;
-	};
 }
 const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
@@ -39,61 +40,51 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 		const { usersID } = req;
 		const { startDate, endDate } = req.query as unknown as RequestQuery;
 
-		const [activity, sleep] = await Promise.all([
-			UsersDailyActivity.find({
+		if (!usersID) {
+			throw new Error("usersID couldn't be found");
+		}
+
+		const startOfTheDay = getStartOfDay(new Date(startDate));
+		const startDatePrevDay = dayjs(getStartOfDay(new Date(startDate)))
+			.subtract(1, "day")
+			.toDate();
+		const endDateEndOfDay = dayjs(getStartOfDay(new Date(endDate)))
+			.utc()
+			.endOf("day")
+			.toDate();
+		const datesArray = generateDatesArray(startOfTheDay, endDateEndOfDay);
+		const [activity, dailySleep, reducedMeasurementsConfig] = await Promise.all([
+			UsersActivity.find({
 				usersID,
-				date: { $gte: new Date(startDate), $lte: new Date(endDate) },
+				startDate: { $gte: startDatePrevDay },
+				endDate: { $lte: endDateEndOfDay },
 			}).lean(),
-			UsersDailyMeasurements.find({
-				usersID,
-				measurementCode: MEASUREMENT_CODES.SLEEP,
-				date: { $gte: new Date(startDate), $lte: new Date(endDate) },
-			}).lean(),
+			getMeasurementFromDailySum(datesArray, usersID, ACTIVE_MEASUREMENTS.SLEEP_DURATION),
+			getReducedMeasurementsConfig(),
 		]);
-		const datesArray = generateDatesArray(new Date(startDate), new Date(endDate));
+
+		const sleepPrecision = reducedMeasurementsConfig[ACTIVE_MEASUREMENTS.SLEEP_DURATION].precision || 2;
+		const activityPrecision = reducedMeasurementsConfig[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION].precision || 2;
+		const inactivePrecision = reducedMeasurementsConfig[ACTIVE_MEASUREMENTS.SLEEP_DURATION].precision || 2;
+
 		const data = datesArray
 			.map((date) => {
-				let inactiveTime = 0;
-				let sleepTime = 0;
-				let activityTime = 0;
-				let notTrackedTime = MINUTES_IN_DAY;
-
-				const activitySample = activity.filter((activityItem) => activityItem.date.toISOString() === date.toISOString());
-				const sleepSample = sleep.filter((sleepItem) => sleepItem.date.toISOString() === date.toISOString());
-
-				if (activitySample.length && sleepSample.length) {
-					sleepTime = sleepSample[0].value;
-					activityTime = activitySample[0].exerciseTimeMinutes;
-					inactiveTime = MINUTES_IN_DAY - sleepTime - activityTime;
-					notTrackedTime = 0;
-				}
-
-				if (!activitySample.length && sleepSample.length) {
-					sleepTime = sleepSample[0].value;
-					inactiveTime = MINUTES_IN_DAY - sleepTime;
-					notTrackedTime = 0;
-				}
-
-				if (!sleepSample.length && activitySample.length) {
-					activityTime = activitySample[0].exerciseTimeMinutes;
-					inactiveTime = MINUTES_IN_DAY - activityTime;
-					notTrackedTime = 0;
-				}
+				const sleepDurationByDate = dailySleep.sleepDuration.find((item) => item.date.toISOString() === date.toISOString());
+				const sleepTime = sleepDurationByDate?.value || 0;
+				const activityTime = 0;
+				const inactiveTime = MINUTES_IN_DAY - sleepTime - activityTime;
 
 				return {
 					date,
 					activity: {
-						time: activityTime,
-						calories: activitySample[0]?.activeEnergyBurned || 0,
+						time: 0,
+						calories: 0,
 					},
 					sleep: {
-						time: sleepTime,
+						time: decimalAdjust(sleepTime, sleepPrecision),
 					},
 					inactive: {
-						time: inactiveTime,
-					},
-					notTracked: {
-						time: notTrackedTime,
+						time: decimalAdjust(inactiveTime, inactivePrecision),
 					},
 				};
 			})

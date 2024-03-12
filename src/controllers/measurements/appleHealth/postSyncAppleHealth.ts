@@ -1,18 +1,18 @@
 import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
-import { HealthValue, MEASUREMENT_CODES } from "@constants/measurements";
-import mongoose, { ClientSession } from "mongoose";
-import { IActivitySample } from "@controllers/measurements/helpers/saveActivitySamples";
-import { ISleepSample } from "@controllers/measurements/helpers/saveSleepSamples";
+import { HealthValue, RAW_MEASUREMENT_CODES, RAW_MEASUREMENT_CODES_ARRAY } from "@constants/measurements";
+import mongoose, { ClientSession, Types } from "mongoose";
 import saveAppleHealthHeight from "@controllers/measurements/appleHealth/heplers/saveAppleHealthHeight";
-import { Measurements } from "@models/measurements";
 import saveAppleHealthWeight from "@controllers/measurements/appleHealth/heplers/saveAppleHealthWeight";
 import saveAppleHealthWalkingRunningDistance from "@controllers/measurements/appleHealth/heplers/saveAppleHealthWalkingRunningDistance";
 import saveAppleHealthSteps from "@controllers/measurements/appleHealth/heplers/saveAppleHealthSteps";
-import saveAppleHealthSleep from "@controllers/measurements/appleHealth/heplers/saveAppleHealthSleep";
+import saveAppleHealthSleep, { ISleepSample } from "@controllers/measurements/appleHealth/heplers/saveAppleHealthSleep";
 import saveAppleHealthHeartRate from "@controllers/measurements/appleHealth/heplers/saveAppleHealthHeartRate";
-import saveAppleHealthActivity from "@controllers/measurements/appleHealth/heplers/saveAppleHealthActivity";
+import saveAppleHealthActivity, { IActivitySample } from "@controllers/measurements/appleHealth/heplers/saveAppleHealthActivity";
+import { Users } from "@models/users";
+
+const { ObjectId } = Types;
 
 interface IMeasurementsObject {
 	heartRate: HealthValue[] | null;
@@ -25,73 +25,59 @@ interface IMeasurementsObject {
 }
 
 const SYNC_STRATEGY = {
-	[MEASUREMENT_CODES.HEART_RATE]: saveAppleHealthHeartRate,
-	[MEASUREMENT_CODES.HEIGHT]: saveAppleHealthHeight,
-	[MEASUREMENT_CODES.WEIGHT]: saveAppleHealthWeight,
-	[MEASUREMENT_CODES.WALKING_RUNNING_DISTANCE]: saveAppleHealthWalkingRunningDistance,
-	[MEASUREMENT_CODES.STEPS]: saveAppleHealthSteps,
-	[MEASUREMENT_CODES.ACTIVITY]: saveAppleHealthActivity,
-	[MEASUREMENT_CODES.SLEEP]: saveAppleHealthSleep,
+	[RAW_MEASUREMENT_CODES.HEART_RATE]: saveAppleHealthHeartRate,
+	[RAW_MEASUREMENT_CODES.HEIGHT]: saveAppleHealthHeight,
+	[RAW_MEASUREMENT_CODES.WEIGHT]: saveAppleHealthWeight,
+	[RAW_MEASUREMENT_CODES.WALKING_RUNNING_DISTANCE]: saveAppleHealthWalkingRunningDistance,
+	[RAW_MEASUREMENT_CODES.STEPS]: saveAppleHealthSteps,
+	[RAW_MEASUREMENT_CODES.ACTIVITY]: saveAppleHealthActivity,
+	[RAW_MEASUREMENT_CODES.SLEEP]: saveAppleHealthSleep,
 };
 const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
 		success: false,
 		error: "",
 		errorCode: "",
+		lastSyncDate: "",
 	};
 	let mongoSession: ClientSession | null = null;
 	try {
 		const { usersID } = req;
 		const measurements = req.body as IMeasurementsObject;
+		const now = new Date();
 
 		const isAnyMeasurement = Object.values(measurements).some((measurement) => measurement && measurement.length > 0);
 		if (!isAnyMeasurement) {
-			responseJSON.error = "No measurements found";
-			responseJSON.errorCode = "NO_MEASUREMENTS_FOUND";
+			await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate: now, lastUpdated: now });
+			responseJSON.success = true;
+			responseJSON.lastSyncDate = now.toISOString();
+			return res.status(200).json(responseJSON);
+		}
+
+		if (Object.keys(measurements).some((rawMeasurementCode) => !RAW_MEASUREMENT_CODES_ARRAY.includes(rawMeasurementCode))) {
+			responseJSON.error = "Invalid measurement code";
+			responseJSON.errorCode = "INVALID_MEASUREMENT_CODE";
 			return res.status(400).json(responseJSON);
 		}
 
 		if (!usersID) {
 			throw new Error("usersID couldn't be found");
 		}
-
-		const measurementsConfig = await Measurements.find({ active: true }).lean();
-		if (!measurementsConfig || !measurementsConfig.length) {
-			responseJSON.error = "No config found";
-			responseJSON.errorCode = "NO_CONFIG_FOUND";
-			return res.status(400).json(responseJSON);
-		}
-
-		const preparedMeasurementsConfig = measurementsConfig.reduce(
-			(acc, config) => {
-				if (!config.code) {
-					return acc;
-				}
-				acc[config.code] = config;
-				return acc;
-			},
-			{} as Record<string, any>
-		);
-
 		mongoSession = await mongoose.startSession();
 		await mongoSession.withTransaction(async () => {
 			for (const [measurementCode, measurementsArray] of Object.entries(measurements)) {
 				if (measurementsArray && measurementsArray.length && mongoSession) {
-					const result = await SYNC_STRATEGY[measurementCode](
-						measurementsArray,
-						usersID,
-						preparedMeasurementsConfig[measurementCode],
-						mongoSession
-					);
+					const result = await SYNC_STRATEGY[measurementCode](measurementsArray, usersID, mongoSession);
 					if (!result) {
 						throw new Error(`Error at ${measurementCode}`);
 					}
 				}
 			}
+			await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate: now, lastUpdated: now }, { mongoSession });
 		});
-		// should update last sync date here?
 		await mongoSession.endSession();
 
+		responseJSON.lastSyncDate = now.toISOString();
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);
 	} catch (e) {

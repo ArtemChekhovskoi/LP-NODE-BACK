@@ -4,12 +4,16 @@ import { IResponseWithData } from "@controllers/controllers.interface";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import dayjs from "dayjs";
 import validator from "validator";
-import { UsersDailyMeasurements } from "@models/users_daily_measurements";
 import getStartOfDay from "@helpers/getStartOfTheDay";
-import { Types } from "mongoose";
-import { calculateAverageMeasurement } from "@helpers/calculateAverageMeasurement";
-
-const { ObjectId } = Types;
+import { ACTIVE_MEASUREMENTS, MEASUREMENTS_GROUPS } from "@constants/measurements";
+import getReducedMeasurementsConfig from "@controllers/measurements/helpers/getReducedMeasurementsConfig";
+import {
+	getDailyHeartRateByDates,
+	getDailyReflections,
+	getHeightByDates,
+	getMeasurementFromDailySum,
+	getWeightByDates,
+} from "@helpers/getMeasurementsByType";
 
 type RequestQuery = {
 	date?: string;
@@ -17,12 +21,26 @@ type RequestQuery = {
 
 export type ReturnedDailyMeasurement = {
 	value: number;
-	unit: string;
+	unit?: string;
 	name: string;
-	precision: number;
+	precision?: number;
 };
 
 type IResponseData = ReturnedDailyMeasurement[] | [];
+
+const MEASUREMENTS_DAILY_STRATEGY = {
+	[MEASUREMENTS_GROUPS.DAILY_HEART_RATE.code]: (dates: Date[], usersID: string) => getDailyHeartRateByDates(dates, usersID),
+	[MEASUREMENTS_GROUPS.WEIGHT.code]: (dates: Date[], usersID: string) => getWeightByDates(dates, usersID),
+	[MEASUREMENTS_GROUPS.HEIGHT.code]: (dates: Date[], usersID: string) => getHeightByDates(dates, usersID),
+	[MEASUREMENTS_GROUPS.SLEEP_DURATION.code]: (dates: Date[], usersID: string) =>
+		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.SLEEP_DURATION),
+	[MEASUREMENTS_GROUPS.DAILY_STEPS.code]: (dates: Date[], usersID: string) =>
+		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.DAILY_STEPS),
+	[MEASUREMENTS_GROUPS.DAILY_DISTANCE.code]: (dates: Date[], usersID: string) =>
+		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.DAILY_DISTANCE),
+	[MEASUREMENTS_GROUPS.DAILY_REFLECTIONS.code]: (dates: Date[], usersID: string) => getDailyReflections(dates, usersID),
+};
+
 const getDailyMeasurements = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON: IResponseWithData<IResponseData> = {
 		success: false,
@@ -39,67 +57,34 @@ const getDailyMeasurements = async (req: ExtendedRequest, res: Response) => {
 			date = dayjs().format("YYYY-MM-DD");
 		}
 
-		const filter = {
-			usersID: new ObjectId(usersID),
-			date: getStartOfDay(new Date(date)),
-		};
-
-		const measurements: ReturnedDailyMeasurement[] = await UsersDailyMeasurements.aggregate([
-			{
-				$match: filter,
-			},
-			{
-				$lookup: {
-					from: "measurements",
-					localField: "measurementCode",
-					foreignField: "code",
-					as: "measurementData",
-				},
-			},
-			{
-				$unwind: "$measurementData",
-			},
-			{
-				$project: {
-					_id: false,
-					value: true,
-					unit: "$measurementData.unit",
-					name: "$measurementData.name",
-					precision: "$measurementData.precision",
-					isOnePerDay: "$measurementData.isOnePerDay",
-				},
-			},
-		]);
-
-		if (!measurements || measurements.length === 0) {
-			return res.status(200).json(responseJSON);
+		if (!usersID) {
+			throw new Error("User ID is required");
 		}
 
-		const reducedMeasurements = measurements.reduce(
-			(acc, measurement) => {
-				const { name, value, unit, precision } = measurement;
-				if (acc[name]) {
-					acc[name].push({ value, unit, precision, name });
-				} else {
-					acc[name] = [{ value, unit, precision, name }];
-				}
-				return acc;
-			},
-			{} as Record<string, ReturnedDailyMeasurement[]>
+		const startOfTheDay = getStartOfDay(new Date(date));
+
+		const reducedMeasurementsConfig = await getReducedMeasurementsConfig();
+
+		const fetchedMeasurements = await Promise.all(
+			Object.values(MEASUREMENTS_DAILY_STRATEGY).map((strategy) => strategy([startOfTheDay], usersID))
 		);
 
-		const preparedMeasurements = Object.values(reducedMeasurements).map((dailyMeasurements) => {
-			let measurement = dailyMeasurements[0];
-			if (dailyMeasurements.length > 1) {
-				measurement = calculateAverageMeasurement(dailyMeasurements);
+		const preparedMeasurements = [] as ReturnedDailyMeasurement[];
+		for (const measurementsGroup of fetchedMeasurements) {
+			for (const [key, measurements] of Object.entries(measurementsGroup)) {
+				const measurementConfig = reducedMeasurementsConfig[key];
+				if (!measurementConfig) {
+					continue;
+				}
+				if (measurements.length === 0) {
+					continue;
+				}
+				preparedMeasurements.push({
+					...measurementConfig,
+					value: measurements[0]?.value,
+				});
 			}
-
-			const { precision, value } = measurement;
-			return {
-				...measurement,
-				value: Number(value.toFixed(precision)),
-			};
-		});
+		}
 
 		responseJSON.data = preparedMeasurements;
 		return res.status(200).json(responseJSON);

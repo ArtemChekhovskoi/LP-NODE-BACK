@@ -22,6 +22,23 @@ const usersDailyReflections = new Schema(
 			required: true,
 			default: false,
 		},
+		activityFeeling: {
+			type: Number,
+			required: false,
+		},
+		sleepQuality: {
+			type: Number,
+			required: false,
+		},
+		notes: {
+			type: String,
+			required: false,
+		},
+		emotionsID: {
+			type: Schema.Types.ObjectId,
+			required: false,
+			ref: "emotions_config",
+		},
 		lastUpdated: {
 			type: Date,
 			required: true,

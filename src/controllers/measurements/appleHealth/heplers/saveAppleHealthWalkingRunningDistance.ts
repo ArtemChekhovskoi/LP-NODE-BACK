@@ -1,40 +1,62 @@
-import { IMeasurementsConfig } from "@controllers/measurements/helpers/createDatesObject";
-import { HealthValue, MEASUREMENT_CODES } from "@constants/measurements";
-import sumMeasurementsByDay from "@controllers/measurements/helpers/sumMeasurementsByDay";
-import { UsersDailyMeasurements } from "@models/users_daily_measurements";
+import { ACTIVE_MEASUREMENTS, HealthValue } from "@constants/measurements";
 import { ClientSession, Types } from "mongoose";
+import { UsersWalkingRunningDistance } from "@models/users_walking_running_distance";
+import sumMeasurementsByDay from "@controllers/measurements/helpers/sumMeasurementsByDay";
+import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
 
 const { ObjectId } = Types;
 
 const saveAppleHealthWalkingRunningDistance = async (
 	walkingRunningDistance: HealthValue[],
 	usersID: string,
-	measurementsConfig: IMeasurementsConfig,
 	mongoSession: ClientSession
 ) => {
 	if (!walkingRunningDistance || walkingRunningDistance.length === 0) {
 		throw new Error("No walkingRunningDistance data");
 	}
 
-	const distancePerDay = sumMeasurementsByDay(walkingRunningDistance);
-	const distanceBulkWrite = distancePerDay.map((distanceByDate) => ({
+	const dailyDistanceByDay = sumMeasurementsByDay(walkingRunningDistance);
+	const dailyDistanceBulkWrite = dailyDistanceByDay.map((measurement) => {
+		return {
+			updateOne: {
+				filter: {
+					usersID: new ObjectId(usersID),
+					date: new Date(measurement.date),
+					measurementCode: ACTIVE_MEASUREMENTS.DAILY_DISTANCE,
+				},
+				update: {
+					$inc: {
+						value: measurement.value,
+					},
+					$set: {
+						lastUpdated: new Date(),
+					},
+				},
+				upsert: true,
+			},
+		};
+	});
+
+	const distanceBulkWrite = walkingRunningDistance.map((measurement) => ({
 		updateOne: {
 			filter: {
 				usersID: new ObjectId(usersID),
-				measurementCode: MEASUREMENT_CODES.WALKING_RUNNING_DISTANCE,
-				date: new Date(distanceByDate.date),
+				startDate: new Date(measurement.startDate),
+				sourceName: measurement?.sourceName,
 			},
 			update: {
-				$inc: { value: distanceByDate.value },
-				$set: { lastUpdated: new Date() },
+				$set: {
+					endDate: new Date(measurement.endDate),
+					value: measurement.value,
+					lastUpdated: new Date(),
+				},
 			},
 			upsert: true,
 		},
 	}));
 
-	await UsersDailyMeasurements.bulkWrite(distanceBulkWrite, {
-		session: mongoSession as ClientSession,
-	});
+	await UsersDailyMeasurementsSum.bulkWrite(dailyDistanceBulkWrite, { session: mongoSession });
+	await UsersWalkingRunningDistance.bulkWrite(distanceBulkWrite, { session: mongoSession });
 
 	return true;
 };

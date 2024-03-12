@@ -3,5 +3,6 @@ import utc from "dayjs/plugin/utc";
 
 dayjs.extend(utc);
 export default function getStartOfDay(date: string | Date): Date {
-	return dayjs(date).utcOffset(0).startOf("day").toDate();
+	const dateToConvert = new Date(date);
+	return dayjs(dateToConvert).utc().startOf("day").toDate();
 }

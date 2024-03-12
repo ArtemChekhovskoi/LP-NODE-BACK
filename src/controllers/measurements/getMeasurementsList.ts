@@ -2,13 +2,12 @@ import { Response } from "express";
 import { Types } from "mongoose";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
-import { UsersDailyEmotions } from "@models/users_daily_emotions";
-import { UsersDailyNotes } from "@models/users_daily_notes";
 
 import generateDatesArray from "@helpers/generateDatesArray";
 import { IResponseWithData } from "@controllers/controllers.interface";
 import { EmotionsConfig } from "@models/emotions_config";
 import { UsersDailyWeather } from "@models/users_daily_weather";
+import { UsersDailyReflections } from "@models/users_daily_reflections";
 
 interface RequestQuery {
 	startDate: string;
@@ -35,27 +34,15 @@ const getList = async (req: ExtendedRequest, res: Response) => {
 			date: { $gte: new Date(startDate), $lte: new Date(endDate) },
 		};
 
-		const [usersEmotions, usersDailyNotes, usersDailyWeather, emotionsConfig] = await Promise.all([
-			UsersDailyEmotions.find(filter, {
-				emotionsID: true,
-				date: true,
-				_id: false,
-			})
-				.lean()
-				.sort({ date: 1 }),
-			UsersDailyNotes.find(filter, {
-				notes: true,
-				date: true,
-				_id: false,
-			})
-				.lean()
-				.sort({ date: 1 }),
+		const [usersReflections, usersDailyWeather, emotionsConfig] = await Promise.all([
+			UsersDailyReflections.find(filter, { notes: true, emotionsID: true, date: true, _id: false }).lean(),
 			UsersDailyWeather.find(filter, {
 				icon: true,
 				date: true,
 				title: true,
-			}),
-			EmotionsConfig.find({ active: true }).lean(),
+				_id: false,
+			}).lean(),
+			EmotionsConfig.find({ active: true }, { sort: false, active: false, __v: false }).lean(),
 		]);
 
 		const datesArray = generateDatesArray(new Date(startDate), new Date(endDate));
@@ -66,29 +53,22 @@ const getList = async (req: ExtendedRequest, res: Response) => {
 				notes: "",
 			};
 
-			const usersEmotionsWithConfig = usersEmotions.map((item) => {
-				const emotionConfig = emotionsConfig.find((config) => config._id.toString() === item.emotionsID.toString());
-				return {
-					date: item.date,
-					...emotionConfig,
-				};
-			});
-			const usersEmotionByDate = usersEmotionsWithConfig.find((item) => item.date.toISOString() === date.toISOString());
-			const usersDailyNoteByDate = usersDailyNotes.find((item) => item.date.toISOString() === date.toISOString());
+			const reflectionByDate = usersReflections.find((item) => item.date.toISOString() === date.toISOString());
+			if (reflectionByDate && reflectionByDate?.emotionsID) {
+				dateObject.emotion = emotionsConfig.find(
+					(config) => reflectionByDate.emotionsID && config._id.toString() === reflectionByDate.emotionsID.toString()
+				);
+			}
+			dateObject.notes = reflectionByDate?.notes || "";
 			const usersDailyWeatherByDate = usersDailyWeather.find((item) => item.date.toISOString() === date.toISOString());
 
-			if (usersEmotionByDate) {
-				dateObject.emotion = usersEmotionByDate;
-			}
-			if (usersDailyNoteByDate) {
-				dateObject.notes = usersDailyNoteByDate.notes;
-			}
 			if (usersDailyWeatherByDate) {
 				dateObject.weather = usersDailyWeatherByDate;
 			}
 
 			return dateObject;
 		});
+
 		responseJSON.data = data;
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);

@@ -1,18 +1,24 @@
 import { logger } from "@logger/index";
 import { Response } from "express";
 import { ExtendedRequest } from "@middlewares/checkAuth";
-import { Measurements } from "@models/measurements";
-import { Types } from "mongoose";
 import { parseArrayInQuery } from "@helpers/parseArrayInQuery";
-import { UsersDailyMeasurements } from "@models/users_daily_measurements";
 import { IResponseWithData } from "@controllers/controllers.interface";
 import { DATA_PRESENTATION, IDataPresentationByDate } from "@constants/patterns";
 import calculateAverageByDate from "@controllers/patterns/helpers/calculateAverageByDate";
 import generateDatesArray from "@helpers/generateDatesArray";
 import { getMeasurementsScale } from "@controllers/patterns/helpers/getMeasurementsScale";
-import dayjs from "dayjs";
+import { ACTIVE_MEASUREMENTS, IActiveMeasurementsValues } from "@constants/measurements";
+import {
+	getDailyHeartRateByDates,
+	getDailyReflections,
+	getHeightByDates,
+	getMeasurementFromDailySum,
+	getWeightByDates,
+} from "@helpers/getMeasurementsByType";
+import getStartOfDay from "@helpers/getStartOfTheDay";
+import prepareMeasurementsForReturn from "@helpers/prepareMeasurementsForReturn";
+import getReducedMeasurementsConfig from "@controllers/measurements/helpers/getReducedMeasurementsConfig";
 
-const { ObjectId } = Types;
 interface RequestQuery {
 	startDate: string;
 	endDate: string;
@@ -22,14 +28,12 @@ interface RequestQuery {
 
 export interface IPatternsListResponseData {
 	name: string;
-	unit: string;
+	unit?: string;
 	code: string;
 	precision?: number;
 	measurements: Array<{
-		value: number;
-		date: Date;
-		startDate?: string | Date;
-		endDate?: string | Date;
+		value: number | null;
+		date?: Date;
 	}>;
 }
 
@@ -39,6 +43,26 @@ export interface IPatternsListResponseWithScales extends IPatternsListResponseDa
 	maxScaleValue: number;
 	maxMultiplier: number;
 }
+
+const QUERIES_BY_MEASUREMENT_TYPES = {
+	[ACTIVE_MEASUREMENTS.AVG_HEART_RATE]: getDailyHeartRateByDates,
+	[ACTIVE_MEASUREMENTS.MAX_HEART_RATE]: getDailyHeartRateByDates,
+	[ACTIVE_MEASUREMENTS.MIN_HEART_RATE]: getDailyHeartRateByDates,
+	[ACTIVE_MEASUREMENTS.WEIGHT]: getWeightByDates,
+	[ACTIVE_MEASUREMENTS.HEIGHT]: getHeightByDates,
+	[ACTIVE_MEASUREMENTS.SLEEP_DURATION]: (dates: Date[], usersID: string) =>
+		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.SLEEP_DURATION),
+	[ACTIVE_MEASUREMENTS.DAILY_STEPS]: (dates: Date[], usersID: string) =>
+		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.DAILY_STEPS),
+	[ACTIVE_MEASUREMENTS.DAILY_DISTANCE]: (dates: Date[], usersID: string) =>
+		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.DAILY_DISTANCE),
+	[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_FEELING]: getDailyReflections,
+	[ACTIVE_MEASUREMENTS.DAILY_SLEEP_QUALITY]: getDailyReflections,
+	[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION]: (dates: Date[], usersID: string) =>
+		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION),
+	[ACTIVE_MEASUREMENTS.DAILY_CALORIES_BURNED]: (dates: Date[], usersID: string) =>
+		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.DAILY_CALORIES_BURNED),
+} as const;
 
 const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON: IResponseWithData<IPatternsListResponseWithScales[] | []> = {
@@ -50,7 +74,7 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 	try {
 		const { startDate, endDate, measurements, presentation } = req.query as unknown as RequestQuery;
 		const { usersID } = req;
-		const measurementsArray = parseArrayInQuery(measurements);
+		const measurementsArray = parseArrayInQuery(measurements) as IActiveMeasurementsValues[];
 
 		if (!measurementsArray.length) {
 			responseJSON.error = "Measurements is required";
@@ -60,16 +84,10 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 
 		logger.info(`Getting patterns for user ${usersID}. Data: ${JSON.stringify(req.query)}`);
 
-		const measurementsConfig = await Measurements.find(
-			{
-				active: true,
-				code: { $in: measurementsArray },
-			},
-			{ code: true, name: true, unit: true, precision: true }
-		).lean();
+		const reducedMeasurementsConfig = await getReducedMeasurementsConfig();
 
 		const isMeasurementsValid = measurementsArray.every((item) => {
-			return measurementsConfig.find((config) => config.code === item);
+			return Object.keys(reducedMeasurementsConfig).includes(item);
 		});
 
 		if (!isMeasurementsValid) {
@@ -77,53 +95,20 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 			responseJSON.errorCode = "INVALID_MEASUREMENTS";
 			return res.status(400).json(responseJSON);
 		}
+
+		const dateArray = generateDatesArray(getStartOfDay(startDate), getStartOfDay(endDate));
 		const measurementsData = await Promise.all(
-			measurementsConfig.map(async (item) => {
-				const measurementsByDate = await UsersDailyMeasurements.find(
-					{
-						usersID: new ObjectId(usersID),
-						date: {
-							$gte: startDate,
-							$lte: endDate,
-						},
-						measurementCode: item.code,
-					},
-					{
-						value: true,
-						date: true,
-						_id: false,
-					}
-				)
-					.sort({ date: -1 })
-					.lean();
-				return {
-					name: item.name,
-					unit: item.unit,
-					code: item.code,
-					precision: item.precision,
-					measurements: measurementsByDate,
-				} as IPatternsListResponseData;
+			measurementsArray.map(async (measurementKey) => {
+				console.log(measurementKey);
+				// @ts-ignore
+				const measurementsObj = await QUERIES_BY_MEASUREMENT_TYPES[measurementKey](dateArray, usersID);
+				if (!measurements) {
+					throw new Error(`Query for measurement ${measurementKey} not found`);
+				}
+				return { [measurementKey]: measurementsObj[measurementKey] };
 			})
 		);
-
-		const dateArray = generateDatesArray(new Date(startDate), new Date(endDate));
-		let preparedData = measurementsData.map((measurementInfo) => {
-			const result: {
-				value: number;
-				date: Date;
-			}[] = [];
-			dateArray.forEach((date) => {
-				const actualMeasurement = measurementInfo.measurements.find((measurement) => {
-					return dayjs(measurement?.date).startOf("day").isSame(dayjs(date).startOf("day"));
-				});
-				if (actualMeasurement) {
-					result.push(actualMeasurement);
-				} else {
-					result.push({ date, value: 0 });
-				}
-			});
-			return { ...measurementInfo, measurements: result };
-		});
+		let preparedData = prepareMeasurementsForReturn(measurementsData, reducedMeasurementsConfig);
 
 		if (presentation !== DATA_PRESENTATION.DAY) {
 			preparedData = calculateAverageByDate(preparedData, presentation);

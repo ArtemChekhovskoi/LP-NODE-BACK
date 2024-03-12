@@ -52,7 +52,6 @@ const getProfile = async (req: ExtendedRequest, res: Response) => {
 			isMorningReflectionDone: usersReflection?.isMorningReflectionDone || false,
 			isEveningReflectionDone: usersReflection?.isEveningReflectionDone || false,
 		};
-		console.log("responseJSON", responseJSON);
 		responseJSON.success = true;
 		return res.json(responseJSON);
 	} catch (e) {
