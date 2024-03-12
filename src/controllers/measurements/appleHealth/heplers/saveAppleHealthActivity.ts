@@ -23,14 +23,12 @@ const saveAppleHealthActivity = async (activity: IActivitySample[], usersID: str
 			filter: {
 				usersID: new ObjectId(usersID),
 				date: new Date(measurement.date),
-				sourceName: measurement?.sourceName,
 			},
 			update: {
 				$set: {
 					activeEnergyBurned: measurement.activeEnergyBurned,
 					exerciseTimeMinutes: measurement.appleExerciseTime,
 					standTimeHours: measurement.appleStandHours,
-
 					lastUpdated: new Date(),
 				},
 			},
