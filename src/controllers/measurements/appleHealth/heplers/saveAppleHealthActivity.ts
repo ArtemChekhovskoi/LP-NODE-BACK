@@ -1,15 +1,24 @@
 import { logger } from "@logger/index";
 import { ClientSession, Types } from "mongoose";
 import { UsersActivity } from "@models/users_activity";
+import { ACTIVE_MEASUREMENTS } from "@constants/measurements";
+import getStartOfDay from "@helpers/getStartOfTheDay";
+import dayjs from "dayjs";
+import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
 
 const { ObjectId } = Types;
 
 export interface IActivitySample {
-	date: string | Date;
-	activeEnergyBurned: number;
-	appleExerciseTime: number;
-	appleStandHours: number;
-	sourceName: string;
+	startDate: Date;
+	endDate: Date;
+	value: number;
+}
+
+interface IActivityTotals {
+	[date: string]: {
+		dailyActiveEnergyBurned: number;
+		dailyActivityTimeMinutes: number;
+	};
 }
 const saveAppleHealthActivity = async (activity: IActivitySample[], usersID: string, mongoSession: ClientSession) => {
 	logger.info(`Start postUpdateActivity. Activity length: ${activity?.length}. Example: ${JSON.stringify(activity)}`);
@@ -17,18 +26,72 @@ const saveAppleHealthActivity = async (activity: IActivitySample[], usersID: str
 	if (!activity || activity.length === 0) {
 		throw new Error("No activity data");
 	}
-	// TODO Check is date returned
+	const activityTotals = activity.reduce((acc, curr) => {
+		const date = getStartOfDay(curr.startDate).toISOString();
+		const periodActivityMinutes = dayjs(curr.endDate).diff(dayjs(curr.startDate), "minutes");
+		if (!acc[date]) {
+			acc[date] = {
+				dailyActiveEnergyBurned: curr.value,
+				dailyActivityTimeMinutes: periodActivityMinutes,
+			};
+		} else {
+			acc[date].dailyActiveEnergyBurned += curr.value;
+			acc[date].dailyActivityTimeMinutes += periodActivityMinutes;
+		}
+		return acc;
+	}, {} as IActivityTotals);
+	const dailyActivityBulkWrite = Object.entries(activityTotals)
+		.map(([date, measurement]) => {
+			return [
+				{
+					updateOne: {
+						filter: {
+							date: new Date(date),
+							usersID: new ObjectId(usersID),
+							measurementCode: ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION,
+						},
+						update: {
+							$inc: {
+								value: measurement.dailyActivityTimeMinutes,
+							},
+							$set: {
+								lastUpdated: new Date(),
+							},
+						},
+						upsert: true,
+					},
+				},
+				{
+					updateOne: {
+						filter: {
+							date: new Date(date),
+							usersID: new ObjectId(usersID),
+							measurementCode: ACTIVE_MEASUREMENTS.DAILY_CALORIES_BURNED,
+						},
+						update: {
+							$inc: {
+								value: measurement.dailyActiveEnergyBurned,
+							},
+							$set: {
+								lastUpdated: new Date(),
+							},
+						},
+						upsert: true,
+					},
+				},
+			];
+		})
+		.flat();
 	const activityBulkWrite = activity.map((measurement) => ({
 		updateOne: {
 			filter: {
 				usersID: new ObjectId(usersID),
-				date: new Date(measurement.date),
+				startDate: new Date(measurement.startDate),
 			},
 			update: {
 				$set: {
-					activeEnergyBurned: measurement.activeEnergyBurned,
-					exerciseTimeMinutes: measurement.appleExerciseTime,
-					standTimeHours: measurement.appleStandHours,
+					endDate: new Date(measurement.endDate),
+					activeEnergyBurned: measurement.value,
 					lastUpdated: new Date(),
 				},
 			},
@@ -37,7 +100,7 @@ const saveAppleHealthActivity = async (activity: IActivitySample[], usersID: str
 	}));
 
 	await UsersActivity.bulkWrite(activityBulkWrite, { session: mongoSession });
-
+	await UsersDailyMeasurementsSum.bulkWrite(dailyActivityBulkWrite, { session: mongoSession });
 	return true;
 };
 

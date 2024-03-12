@@ -12,10 +12,6 @@ const usersActivity = new Schema(
 			type: Number,
 			required: true,
 		},
-		exerciseTimeMinutes: {
-			type: Number,
-			required: true,
-		},
 		startDate: {
 			type: Date,
 			required: true,
