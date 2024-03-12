@@ -67,6 +67,15 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			UsersActivity.find({ usersID, startDate: { $gte: startOfPrevDay }, endDate: { $lte: endOfTheDay } }).lean(),
 		]);
 
+		if (!usersHeartRate || usersHeartRate.length === 0) {
+			responseJSON.data = {
+				heartRate: { measurements: [] },
+				sleep: [],
+				activity: [],
+			};
+			return res.status(200).json(responseJSON);
+		}
+
 		if (!heartRateConfig) {
 			throw new Error("No heart rate config found");
 		}
@@ -86,7 +95,6 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 				},
 				{} as { [sourceName: string]: SleepValue[] }
 			);
-			// eslint-disable-next-line prefer-destructuring
 			const sourceIndexWithMoreInfo = Object.values(sleepReducedBySourceName)
 				.map((a) => a.length)
 				.indexOf(Math.max(...Object.values(sleepReducedBySourceName).map((a) => a.length)));
