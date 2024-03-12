@@ -5,6 +5,9 @@ const measurements = new Schema({
 		type: String,
 		required: true,
 	},
+	shortName: {
+		type: String,
+	},
 	code: {
 		type: String,
 		required: true,
@@ -12,23 +15,9 @@ const measurements = new Schema({
 	},
 	unit: {
 		type: String,
-		required: true,
 	},
 	precision: {
 		type: Number,
-	},
-	type: {
-		type: String,
-		required: true,
-		enum: ["custom", "auto"],
-	},
-	isUsedOnMainScreen: {
-		type: Boolean,
-		required: true,
-	},
-	isOnePerDay: {
-		type: Boolean,
-		required: true,
 	},
 	active: {
 		type: Boolean,

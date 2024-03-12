@@ -1,16 +1,12 @@
 import mongoose, { InferSchemaType, Schema } from "mongoose";
 import { Users } from "@models/users";
 
-const usersDailyActivity = new Schema(
+const usersActivity = new Schema(
 	{
 		usersID: {
 			type: Schema.Types.ObjectId,
 			required: true,
 			ref: Users.collection.name,
-		},
-		date: {
-			type: Date,
-			required: true,
 		},
 		activeEnergyBurned: {
 			type: Number,
@@ -20,15 +16,23 @@ const usersDailyActivity = new Schema(
 			type: Number,
 			required: true,
 		},
+		startDate: {
+			type: Date,
+			required: true,
+		},
+		endDate: {
+			type: Date,
+			required: true,
+		},
 		lastUpdated: {
 			type: Date,
 			required: true,
 			default: new Date(),
 		},
 	},
-	{ collection: "users_daily_activity" }
+	{ collection: "users_activity" }
 );
 
-const UsersDailyActivity = mongoose.model("users_daily_activity", usersDailyActivity);
-export type TUsersDailyActivity = InferSchemaType<typeof usersDailyActivity>;
-export { UsersDailyActivity };
+const UsersActivity = mongoose.model("users_activity", usersActivity);
+export type TUsersActivity = InferSchemaType<typeof usersActivity>;
+export { UsersActivity };

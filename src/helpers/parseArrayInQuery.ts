@@ -1,5 +1,5 @@
 const parseArrayInQuery = (query: string): string[] => {
-  return query.split(",");
+	return query.split(",");
 };
 
 export { parseArrayInQuery };

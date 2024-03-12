@@ -1,19 +1,33 @@
-import { IMeasurementsConfig } from "@controllers/measurements/helpers/createDatesObject";
 import { HealthValue } from "@constants/measurements";
-import saveSimpleAppleValueArray from "@controllers/measurements/helpers/saveSimpleAppleValueArray";
-import { ClientSession } from "mongoose";
+import { ClientSession, Types } from "mongoose";
+import { UsersHeight } from "@models/users_height";
 
-const saveAppleHealthHeight = async (
-	height: HealthValue[],
-	usersID: string,
-	measurementsConfig: IMeasurementsConfig,
-	mongoSession: ClientSession
-) => {
+const { ObjectId } = Types;
+
+const saveAppleHealthHeight = async (height: HealthValue[], usersID: string, mongoSession: ClientSession) => {
 	if (!height || height.length === 0) {
 		throw new Error("No height data");
 	}
 
-	await saveSimpleAppleValueArray({ values: height, measurementsConfig, usersID, mongoSession });
+	const heightBulkUpdateArray = height.map((measurement) => {
+		return {
+			updateOne: {
+				filter: {
+					usersID: new ObjectId(usersID),
+				},
+				update: {
+					$set: {
+						value: measurement.value,
+						lastUpdated: new Date(),
+					},
+				},
+				upsert: true,
+			},
+		};
+	});
+
+	await UsersHeight.bulkWrite(heightBulkUpdateArray, { session: mongoSession });
+
 	return true;
 };
 

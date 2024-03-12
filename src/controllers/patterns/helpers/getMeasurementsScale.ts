@@ -1,8 +1,17 @@
-import { IPatternsListResponseData } from "@controllers/patterns/getPatternsList";
-
 const MAX_VALUE_MULTIPLIER = 1.2;
 
-const getMeasurementsScale = (measurementsInfo: IPatternsListResponseData[]) => {
+interface GetMeasurementsScaleParams {
+	name: string;
+	unit?: string;
+	code: string;
+	precision?: number;
+	measurements: Array<{
+		value: number;
+		date?: Date;
+		startDate?: Date;
+	}>;
+}
+const getMeasurementsScale = (measurementsInfo: GetMeasurementsScaleParams[]) => {
 	const generateScale = (values: number[]) => {
 		const maxValue = Math.max(...values) * MAX_VALUE_MULTIPLIER;
 		const minValue = Math.min(...values);

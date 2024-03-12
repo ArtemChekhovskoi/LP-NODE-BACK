@@ -2,11 +2,7 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import getStartOfDay from "@helpers/getStartOfTheDay";
-import { UsersDailyNotes } from "@models/users_daily_notes";
 import mongoose, { ClientSession, Types } from "mongoose";
-import { UsersDailyEmotions } from "@models/users_daily_emotions";
-import { UsersDailyMeasurements } from "@models/users_daily_measurements";
-import { MEASUREMENT_CODES } from "@constants/measurements";
 import { UsersDailyReflections } from "@models/users_daily_reflections";
 
 const { ObjectId } = Types;
@@ -26,58 +22,9 @@ const postSaveEveningReflection = async (req: ExtendedRequest, res: Response) =>
 
 		mongoSession = await mongoose.startSession();
 		await mongoSession.withTransaction(async () => {
-			if (emotionsID) {
-				await UsersDailyEmotions.updateOne(
-					{
-						usersID: new ObjectId(usersID),
-						date: startOfTheDay,
-					},
-					{
-						emotionsID: new ObjectId(emotionsID),
-						lastUpdated: new Date(),
-					},
-					{
-						session: mongoSession,
-						upsert: true,
-					}
-				);
-			}
-			if (notes) {
-				await UsersDailyNotes.updateOne(
-					{
-						usersID: new ObjectId(usersID),
-						date: startOfTheDay,
-					},
-					{
-						notes,
-						lastUpdated: new Date(),
-					},
-					{
-						session: mongoSession,
-						upsert: true,
-					}
-				);
-			}
-			if (activityFeeling) {
-				await UsersDailyMeasurements.updateOne(
-					{
-						usersID: new ObjectId(usersID),
-						date: startOfTheDay,
-						measurementCode: MEASUREMENT_CODES.ACTIVITY_FEELING,
-					},
-					{
-						value: activityFeeling,
-						lastUpdated: new Date(),
-					},
-					{
-						session: mongoSession,
-						upsert: true,
-					}
-				);
-			}
 			await UsersDailyReflections.updateOne(
 				{ usersID: new ObjectId(usersID), date: startOfTheDay },
-				{ isEveningReflectionDone: true },
+				{ isEveningReflectionDone: true, notes, activityFeeling, emotionsID },
 				{ session: mongoSession, upsert: true }
 			);
 		});

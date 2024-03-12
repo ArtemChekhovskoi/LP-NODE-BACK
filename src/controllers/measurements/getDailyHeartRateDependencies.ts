@@ -2,14 +2,15 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import getStartOfDay from "@helpers/getStartOfTheDay";
-import { UsersDailyMeasurements } from "@models/users_daily_measurements";
-import { MEASUREMENT_CODES } from "@constants/measurements";
-import { UsersDailySleep } from "@models/users_daily_sleep";
-import { UsersDailyActivity } from "@models/users_daily_activity";
+import { ACTIVE_MEASUREMENTS } from "@constants/measurements";
+import { UsersSleep } from "@models/users_sleep";
+import { UsersActivity } from "@models/users_activity";
 import { Measurements } from "@models/measurements";
 import { getMeasurementsScale } from "@controllers/patterns/helpers/getMeasurementsScale";
 import isBetween from "dayjs/plugin/isBetween";
 import dayjs from "dayjs";
+import { UsersHeartRate } from "@models/users_heart_rate";
+import filterMeasurementsByPeriod from "@controllers/measurements/helpers/filterMeasurementsByPeriod";
 
 dayjs.extend(isBetween);
 
@@ -24,6 +25,7 @@ interface SleepValue {
 }
 
 const MINUTES_IN_DAY = 1440;
+const SLEEP_VALUES_TO_INCLUDE = ["RAW", "DEEP", "CORE"];
 
 const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
@@ -42,21 +44,27 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 		}
 
 		const startOfTheDay = getStartOfDay(new Date(date));
+		const endOfTheDay = dayjs(startOfTheDay).utc().endOf("day").toDate();
 		const startOfPrevDay = dayjs(startOfTheDay).subtract(1, "day").toDate();
 
 		const [heartRateConfig, usersHeartRate, usersDailySleep] = await Promise.all([
 			Measurements.findOne(
-				{ code: MEASUREMENT_CODES.HEART_RATE },
+				{ code: ACTIVE_MEASUREMENTS.HEART_RATE_VARIABILITY },
 				{ code: true, name: true, unit: true, precision: true, _id: true }
 			).lean(),
-			UsersDailyMeasurements.find(
-				{ usersID, date: startOfTheDay, measurementCode: MEASUREMENT_CODES.HEART_RATE },
+			UsersHeartRate.find(
+				{ usersID, startDate: { $gte: startOfTheDay }, endDate: { $lte: endOfTheDay } },
 				{ value: true, startDate: true, endDate: true, _id: false }
 			)
 				.lean()
 				.sort({ startDate: 1 }),
-			UsersDailySleep.find({ usersID, date: { $in: [startOfPrevDay, startOfTheDay] } }).lean(),
-			UsersDailyActivity.find({ usersID, date: startOfTheDay }).lean(),
+			UsersSleep.find(
+				{ usersID, startDate: { $gte: startOfPrevDay }, endDate: { $lte: endOfTheDay } },
+				{ value: true, startDate: true, endDate: true, sourceName: true, _id: false }
+			)
+				.lean()
+				.sort({ startDate: 1 }),
+			UsersActivity.find({ usersID, startDate: { $gte: startOfPrevDay }, endDate: { $lte: endOfTheDay } }).lean(),
 		]);
 
 		if (!heartRateConfig) {
@@ -68,6 +76,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			const sleepReducedBySourceName = usersDailySleep.reduce(
 				(acc, item) => {
 					if (!item.sourceName) return acc;
+					if (!SLEEP_VALUES_TO_INCLUDE.includes(item?.value)) return acc;
 					if (!acc[item.sourceName]) {
 						acc[item.sourceName] = [item];
 						return acc;
@@ -78,7 +87,10 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 				{} as { [sourceName: string]: SleepValue[] }
 			);
 			// eslint-disable-next-line prefer-destructuring
-			sleepBySourceName = Object.values(sleepReducedBySourceName)[0];
+			const sourceIndexWithMoreInfo = Object.values(sleepReducedBySourceName)
+				.map((a) => a.length)
+				.indexOf(Math.max(...Object.values(sleepReducedBySourceName).map((a) => a.length)));
+			sleepBySourceName = Object.values(sleepReducedBySourceName)[sourceIndexWithMoreInfo];
 		}
 
 		const sleepWithPercentages = sleepBySourceName
@@ -102,13 +114,14 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			})
 			.filter((sleep) => sleep);
 
+		const everyHalfAndHourHeartRate = filterMeasurementsByPeriod(usersHeartRate, 30);
 		const heartRatePrepared = [
 			{
 				unit: heartRateConfig.unit,
 				precision: heartRateConfig.precision,
 				code: heartRateConfig.code,
 				name: heartRateConfig.name,
-				measurements: usersHeartRate,
+				measurements: everyHalfAndHourHeartRate,
 			},
 		];
 
@@ -123,7 +136,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 
 		// eslint-disable-next-line no-restricted-syntax
 		for (const heartRate of heartRateWithScales.measurements) {
-			while (!dayjs(heartRate.startDate).isBetween(dayTime, dayTime.add(30, "minutes"))) {
+			while (!dayjs(heartRate?.startDate).isBetween(dayTime, dayTime.add(30, "minutes"))) {
 				heartRateWithZeroValues.push({
 					value: 0,
 					startDate: dayTime.toDate(),

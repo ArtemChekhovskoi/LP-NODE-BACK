@@ -1,16 +1,12 @@
 import mongoose, { InferSchemaType, Schema } from "mongoose";
 import { Users } from "@models/users";
 
-const usersDailySleep = new Schema(
+const usersSteps = new Schema(
 	{
 		usersID: {
 			type: Schema.Types.ObjectId,
 			required: true,
 			ref: Users.collection.name,
-		},
-		date: {
-			type: Date,
-			required: true,
 		},
 		startDate: {
 			type: Date,
@@ -21,12 +17,11 @@ const usersDailySleep = new Schema(
 			required: true,
 		},
 		value: {
-			type: String,
+			type: Number,
 			required: true,
 		},
 		sourceName: {
 			type: String,
-			required: true,
 		},
 		lastUpdated: {
 			type: Date,
@@ -34,9 +29,9 @@ const usersDailySleep = new Schema(
 			default: new Date(),
 		},
 	},
-	{ collection: "users_daily_sleep" }
+	{ collection: "users_steps" }
 );
 
-const UsersDailySleep = mongoose.model("users_daily_sleep", usersDailySleep);
-export type TUsersDailySleep = InferSchemaType<typeof usersDailySleep>;
-export { UsersDailySleep };
+const UsersSteps = mongoose.model("users_steps", usersSteps);
+export type TUsersSteps = InferSchemaType<typeof usersSteps>;
+export { UsersSteps };
