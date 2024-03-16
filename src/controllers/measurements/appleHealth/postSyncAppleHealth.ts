@@ -66,7 +66,9 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		mongoSession = await mongoose.startSession();
 		await mongoSession.withTransaction(async () => {
 			for (const [measurementCode, measurementsArray] of Object.entries(measurements)) {
-				if (measurementsArray && measurementsArray.length && mongoSession) {
+				if (measurementsArray && measurementsArray.length > 0 && mongoSession) {
+					console.log(measurementCode);
+					console.log(measurementsArray);
 					const result = await SYNC_STRATEGY[measurementCode](measurementsArray, usersID, mongoSession);
 					if (!result) {
 						throw new Error(`Error at ${measurementCode}`);

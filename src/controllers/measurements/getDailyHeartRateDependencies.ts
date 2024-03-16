@@ -32,7 +32,11 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 		success: false,
 		error: "",
 		errorCode: "",
-		data: {},
+		data: {
+			heartRate: {},
+			sleep: {},
+			activity: {},
+		},
 	};
 
 	try {
@@ -68,11 +72,6 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 		]);
 
 		if (!usersHeartRate || usersHeartRate.length === 0) {
-			responseJSON.data = {
-				heartRate: { measurements: [] },
-				sleep: [],
-				activity: [],
-			};
 			return res.status(200).json(responseJSON);
 		}
 
@@ -81,7 +80,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 		}
 
 		let sleepBySourceName: SleepValue[] = [];
-		if (usersDailySleep && usersDailySleep.length) {
+		if (usersDailySleep && usersDailySleep.length > 0) {
 			const sleepReducedBySourceName = usersDailySleep.reduce(
 				(acc, item) => {
 					if (!item.sourceName) return acc;
@@ -95,10 +94,13 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 				},
 				{} as { [sourceName: string]: SleepValue[] }
 			);
-			const sourceIndexWithMoreInfo = Object.values(sleepReducedBySourceName)
-				.map((a) => a.length)
-				.indexOf(Math.max(...Object.values(sleepReducedBySourceName).map((a) => a.length)));
-			sleepBySourceName = Object.values(sleepReducedBySourceName)[sourceIndexWithMoreInfo];
+
+			if (Object.keys(sleepReducedBySourceName).length > 0) {
+				const sourceIndexWithMoreInfo = Object.values(sleepReducedBySourceName)
+					.map((a) => a.length)
+					.indexOf(Math.max(...Object.values(sleepReducedBySourceName).map((a) => a.length)));
+				sleepBySourceName = Object.values(sleepReducedBySourceName)[sourceIndexWithMoreInfo];
+			}
 		}
 
 		const sleepWithPercentages = sleepBySourceName
@@ -135,7 +137,11 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 
 		const [heartRateWithScales] = getMeasurementsScale(heartRatePrepared);
 		if (!usersHeartRate || usersHeartRate.length === 0) {
-			responseJSON.data = heartRateWithScales;
+			responseJSON.data = {
+				heartRate: { ...heartRateWithScales, measurements: [] },
+				sleep: sleepWithPercentages,
+				activity: {},
+			};
 			return res.status(200).json(responseJSON);
 		}
 
