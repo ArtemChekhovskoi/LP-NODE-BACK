@@ -81,7 +81,7 @@ const getDailyMeasurements = async (req: ExtendedRequest, res: Response) => {
 				}
 				preparedMeasurements.push({
 					...measurementConfig,
-					value: measurements[0]?.value,
+					value: measurements[0].value.toFixed(measurementConfig.precision || 0) || 0,
 				});
 			}
 		}
