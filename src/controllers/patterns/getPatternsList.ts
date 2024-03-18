@@ -81,9 +81,6 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 			responseJSON.errorCode = "MEASUREMENTS_REQUIRED";
 			return res.status(400).json(responseJSON);
 		}
-
-		logger.info(`Getting patterns for user ${usersID}. Data: ${JSON.stringify(req.query)}`);
-
 		const reducedMeasurementsConfig = await getReducedMeasurementsConfig();
 
 		const isMeasurementsValid = measurementsArray.every((item) => {
@@ -99,7 +96,6 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 		const dateArray = generateDatesArray(getStartOfDay(startDate), getStartOfDay(endDate));
 		const measurementsData = await Promise.all(
 			measurementsArray.map(async (measurementKey) => {
-				console.log(measurementKey);
 				// @ts-ignore
 				const measurementsObj = await QUERIES_BY_MEASUREMENT_TYPES[measurementKey](dateArray, usersID);
 				if (!measurements) {

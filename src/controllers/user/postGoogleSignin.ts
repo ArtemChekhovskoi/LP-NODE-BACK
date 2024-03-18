@@ -42,7 +42,6 @@ const postGoogleSignIn = async (req: Request, res: Response) => {
 	};
 	try {
 		const { token } = req.body;
-		logger.info(`postGoogleSignIn: token: ${token}`);
 		// token validation
 		const isValidGoogleToken = isValidToken(token);
 		if (!isValidGoogleToken) {
