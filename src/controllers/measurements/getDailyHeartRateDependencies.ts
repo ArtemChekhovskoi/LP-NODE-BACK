@@ -25,7 +25,7 @@ interface SleepValue {
 }
 
 const MINUTES_IN_DAY = 1440;
-const SLEEP_VALUES_TO_INCLUDE = ["REM", "DEEP", "CORE"];
+const SLEEP_VALUES_TO_INCLUDE = ["REM", "DEEP", "CORE", "AWAKE"];
 
 const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
