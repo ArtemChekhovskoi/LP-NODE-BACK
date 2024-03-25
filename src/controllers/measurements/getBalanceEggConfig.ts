@@ -2,7 +2,6 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 
-import { UsersActivity } from "@models/users_activity";
 import { MINUTES_IN_DAY, ACTIVE_MEASUREMENTS } from "@constants/measurements";
 import generateDatesArray from "@helpers/generateDatesArray";
 import { decimalAdjust } from "@helpers/decimalAdjust";
@@ -45,20 +44,13 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 		}
 
 		const startOfTheDay = getStartOfDay(new Date(startDate));
-		const startDatePrevDay = dayjs(getStartOfDay(new Date(startDate)))
-			.subtract(1, "day")
-			.toDate();
 		const endDateEndOfDay = dayjs(getStartOfDay(new Date(endDate)))
 			.utc()
 			.endOf("day")
 			.toDate();
 		const datesArray = generateDatesArray(startOfTheDay, endDateEndOfDay);
 		const [activity, dailySleep, reducedMeasurementsConfig] = await Promise.all([
-			UsersActivity.find({
-				usersID,
-				startDate: { $gte: startDatePrevDay },
-				endDate: { $lte: endDateEndOfDay },
-			}).lean(),
+			getMeasurementFromDailySum(datesArray, usersID, ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION),
 			getMeasurementFromDailySum(datesArray, usersID, ACTIVE_MEASUREMENTS.SLEEP_DURATION),
 			getReducedMeasurementsConfig(),
 		]);
@@ -70,14 +62,15 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 		const data = datesArray
 			.map((date) => {
 				const sleepDurationByDate = dailySleep.sleepDuration.find((item) => item.date.toISOString() === date.toISOString());
+				const activityDurationByDate = activity.activityDuration.find((item) => item.date.toISOString() === date.toISOString());
 				const sleepTime = sleepDurationByDate?.value || 0;
-				const activityTime = 0;
+				const activityTime = activityDurationByDate?.value || 0;
 				const inactiveTime = MINUTES_IN_DAY - sleepTime - activityTime;
 
 				return {
 					date,
 					activity: {
-						time: 0,
+						time: decimalAdjust(activityTime, activityPrecision),
 						calories: 0,
 					},
 					sleep: {

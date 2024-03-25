@@ -39,6 +39,8 @@ const MEASUREMENTS_DAILY_STRATEGY = {
 	[MEASUREMENTS_GROUPS.DAILY_DISTANCE.code]: (dates: Date[], usersID: string) =>
 		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.DAILY_DISTANCE),
 	[MEASUREMENTS_GROUPS.DAILY_REFLECTIONS.code]: (dates: Date[], usersID: string) => getDailyReflections(dates, usersID),
+	[MEASUREMENTS_GROUPS.DAILY_ACTIVITY.code]: (dates: Date[], usersID: string) =>
+		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION),
 };
 
 const getDailyMeasurements = async (req: ExtendedRequest, res: Response) => {
