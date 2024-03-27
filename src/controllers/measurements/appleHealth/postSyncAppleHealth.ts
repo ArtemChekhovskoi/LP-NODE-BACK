@@ -30,7 +30,7 @@ const SYNC_STRATEGY = {
 	[RAW_MEASUREMENT_CODES.WEIGHT]: saveAppleHealthWeight,
 	[RAW_MEASUREMENT_CODES.WALKING_RUNNING_DISTANCE]: saveAppleHealthWalkingRunningDistance,
 	[RAW_MEASUREMENT_CODES.STEPS]: saveAppleHealthSteps,
-	[RAW_MEASUREMENT_CODES.ACTIVITY]: saveAppleHealthActivity,
+	// [RAW_MEASUREMENT_CODES.ACTIVITY]: saveAppleHealthActivity,
 	[RAW_MEASUREMENT_CODES.SLEEP]: saveAppleHealthSleep,
 };
 const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
@@ -46,14 +46,9 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		const measurements = req.body as IMeasurementsObject;
 		const now = new Date();
 
-		const isAnyMeasurement = Object.values(measurements).some((measurement) => measurement && measurement.length > 0);
-		if (!isAnyMeasurement) {
-			await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate: now, lastUpdated: now });
-			responseJSON.success = true;
-			responseJSON.lastSyncDate = now.toISOString();
-			return res.status(200).json(responseJSON);
-		}
-
+		logger.info(`postSyncAppleHealth: ${JSON.stringify(measurements)}`);
+		logger.info(`activity: ${JSON.stringify(measurements?.activity)}`);
+		logger.info(`sleep: ${JSON.stringify(measurements?.sleep)}`);
 		if (Object.keys(measurements).some((rawMeasurementCode) => !RAW_MEASUREMENT_CODES_ARRAY.includes(rawMeasurementCode))) {
 			responseJSON.error = "Invalid measurement code";
 			responseJSON.errorCode = "INVALID_MEASUREMENT_CODE";
@@ -66,7 +61,7 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		mongoSession = await mongoose.startSession();
 		await mongoSession.withTransaction(async () => {
 			for (const [measurementCode, measurementsArray] of Object.entries(measurements)) {
-				if (measurementsArray && measurementsArray.length > 0 && mongoSession) {
+				if (measurementsArray && measurementsArray.length > 0 && SYNC_STRATEGY[measurementCode] && mongoSession) {
 					const result = await SYNC_STRATEGY[measurementCode](measurementsArray, usersID, mongoSession);
 					if (!result) {
 						throw new Error(`Error at ${measurementCode}`);

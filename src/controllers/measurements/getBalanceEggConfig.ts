@@ -62,7 +62,9 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 		const data = datesArray
 			.map((date) => {
 				const sleepDurationByDate = dailySleep.sleepDuration.find((item) => item.date.toISOString() === date.toISOString());
-				const activityDurationByDate = activity.activityDuration.find((item) => item.date.toISOString() === date.toISOString());
+				const activityDurationByDate = activity[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION].find(
+					(item) => item.date.toISOString() === date.toISOString()
+				);
 				const sleepTime = sleepDurationByDate?.value || 0;
 				const activityTime = activityDurationByDate?.value || 0;
 				const inactiveTime = MINUTES_IN_DAY - sleepTime - activityTime;
