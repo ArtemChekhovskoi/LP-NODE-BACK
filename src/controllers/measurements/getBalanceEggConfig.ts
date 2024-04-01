@@ -68,7 +68,6 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 				.lean(),
 			getReducedMeasurementsConfig(),
 		]);
-		console.log(dailyMeasurementsSum);
 		const groupedMeasurements = dailyMeasurementsSum.reduce(
 			(acc, item) => {
 				if (!acc[item.measurementCode]) {
@@ -119,7 +118,6 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 				};
 			})
 			.reverse();
-		console.log(data);
 		responseJSON.data = data;
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);

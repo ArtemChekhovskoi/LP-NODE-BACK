@@ -26,7 +26,6 @@ const checkAuth = async (req: ExtendedRequest, res: Response, next: NextFunction
 	try {
 		if (req.headers.authorization && req.headers.authorization.split(" ")[0] === "Bearer") {
 			const token = req.headers.authorization.split(" ")[1];
-			console.log(token);
 			const jwtData: JWTData | string = jwt.verify(token, config.jwt.accessTokenSecret);
 			if (typeof jwtData === "string") {
 				throw new Error(`Jwt data is incorrect ${jwtData}`);
