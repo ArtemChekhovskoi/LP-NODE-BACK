@@ -12,6 +12,14 @@ const usersActivity = new Schema(
 			type: Number,
 			required: true,
 		},
+		activityType: {
+			type: Number,
+			required: true,
+		},
+		durationS: {
+			type: Number,
+			required: true,
+		},
 		startDate: {
 			type: Date,
 			required: true,

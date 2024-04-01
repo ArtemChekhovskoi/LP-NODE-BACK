@@ -7,7 +7,7 @@ interface SleepDuration {
 }
 
 const DAILY_CUTOFF_HOURS = 20;
-const SLEEP_VALUES_TO_SUM = ["REM", "DEEP", "CORE"];
+const SLEEP_VALUES_TO_SUM = [1, 3, 4, 5];
 const sumDailySleep = (measurements: ISleepSample[]): { [key: string]: SleepDuration } => {
 	const resultsObj = measurements.reduce(
 		(acc, measurement) => {

@@ -1,0 +1,44 @@
+[
+  {
+    "code": 0,
+    "shortName": "inBed",
+    "fullName": "In Bed",
+    "isSleepStage": true,
+    "sleepStage": null
+  },
+  {
+    "code": 1,
+    "shortName": "asleepUnspecified",
+    "fullName": "Asleep (Unspecified)",
+    "isSleepStage": true,
+    "sleepStage": null
+  },
+  {
+    "code": 2,
+    "shortName": "awake",
+    "fullName": "Awake",
+    "isSleepStage": false,
+    "sleepStage": null
+  },
+  {
+    "code": 3,
+    "shortName": "asleepCore",
+    "fullName": "Asleep (Core)",
+    "isSleepStage": true,
+    "sleepStage": "Core"
+  },
+  {
+    "code": 4,
+    "shortName": "asleepDeep",
+    "fullName": "Asleep (Deep)",
+    "isSleepStage": true,
+    "sleepStage": "Deep"
+  },
+  {
+    "code": 5,
+    "shortName": "asleepREM",
+    "fullName": "Asleep (REM)",
+    "isSleepStage": true,
+    "sleepStage": "REM"
+  }
+]

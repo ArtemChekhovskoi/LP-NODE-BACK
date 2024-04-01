@@ -41,6 +41,8 @@ const MEASUREMENTS_DAILY_STRATEGY = {
 	[MEASUREMENTS_GROUPS.DAILY_REFLECTIONS.code]: (dates: Date[], usersID: string) => getDailyReflections(dates, usersID),
 	[MEASUREMENTS_GROUPS.DAILY_ACTIVITY.code]: (dates: Date[], usersID: string) =>
 		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION),
+	[ACTIVE_MEASUREMENTS.DAILY_CALORIES_BURNED]: (dates: Date[], usersID: string) =>
+		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.DAILY_CALORIES_BURNED),
 };
 
 const getDailyMeasurements = async (req: ExtendedRequest, res: Response) => {
@@ -75,10 +77,11 @@ const getDailyMeasurements = async (req: ExtendedRequest, res: Response) => {
 		for (const measurementsGroup of fetchedMeasurements) {
 			for (const [key, measurements] of Object.entries(measurementsGroup)) {
 				const measurementConfig = reducedMeasurementsConfig[key];
-				if (!measurementConfig) {
+				if (!measurementConfig || !measurements?.length) {
 					continue;
 				}
-				if (measurements.length === 0) {
+
+				if (Array.isArray(measurements) && !measurements[0].value) {
 					continue;
 				}
 				preparedMeasurements.push({

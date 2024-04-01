@@ -27,7 +27,7 @@ const measurementsListSchema = yup.object({
 });
 
 const saveMorningReflectionSchema = yup.object({
-	sleepQuality: yup.number().min(1).max(5).required(),
+	sleepQuality: yup.number().min(1).max(5),
 });
 
 const saveEveningReflectionSchema = yup.object({

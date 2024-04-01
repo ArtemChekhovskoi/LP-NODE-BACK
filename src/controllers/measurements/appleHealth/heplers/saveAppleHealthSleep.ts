@@ -1,4 +1,4 @@
-import { ClientSession, Types } from "mongoose";
+import { Types } from "mongoose";
 import { UsersSleep } from "@models/users_sleep";
 import sumDailySleep from "@controllers/measurements/helpers/sumDailySleep";
 import { ACTIVE_MEASUREMENTS } from "@constants/measurements";
@@ -9,10 +9,10 @@ const { ObjectId } = Types;
 export interface ISleepSample {
 	startDate: string | Date;
 	endDate: string | Date;
-	value: string;
+	value: number;
 	sourceName: string;
 }
-const saveAppleHealthSleep = async (sleep: ISleepSample[], usersID: string, mongoSession: ClientSession) => {
+const saveAppleHealthSleep = (sleep: ISleepSample[], usersID: string) => {
 	if (!sleep || sleep.length === 0) {
 		throw new Error("No sleep data");
 	}
@@ -57,9 +57,16 @@ const saveAppleHealthSleep = async (sleep: ISleepSample[], usersID: string, mong
 		};
 	});
 
-	await UsersSleep.bulkWrite(sleepBulkWrite, { session: mongoSession });
-	await UsersDailyMeasurementsSum.bulkWrite(sleepDurationBulkWrite, { session: mongoSession });
-	return true;
+	return [
+		{
+			data: sleepBulkWrite,
+			model: UsersSleep.collection.name,
+		},
+		{
+			data: sleepDurationBulkWrite,
+			model: UsersDailyMeasurementsSum.collection.name,
+		},
+	];
 };
 
 export default saveAppleHealthSleep;

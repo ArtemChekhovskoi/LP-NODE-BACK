@@ -8,7 +8,7 @@ import { decimalAdjust } from "@helpers/decimalAdjust";
 import getStartOfDay from "@helpers/getStartOfTheDay";
 import dayjs from "dayjs";
 import getReducedMeasurementsConfig from "@controllers/measurements/helpers/getReducedMeasurementsConfig";
-import { getMeasurementFromDailySum } from "@helpers/getMeasurementsByType";
+import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
 
 interface RequestQuery {
 	startDate: string;
@@ -49,11 +49,41 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 			.endOf("day")
 			.toDate();
 		const datesArray = generateDatesArray(startOfTheDay, endDateEndOfDay);
-		const [activity, dailySleep, reducedMeasurementsConfig] = await Promise.all([
-			getMeasurementFromDailySum(datesArray, usersID, ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION),
-			getMeasurementFromDailySum(datesArray, usersID, ACTIVE_MEASUREMENTS.SLEEP_DURATION),
+		const [dailyMeasurementsSum, reducedMeasurementsConfig] = await Promise.all([
+			UsersDailyMeasurementsSum.find(
+				{
+					measurementCode: {
+						$in: [
+							ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION,
+							ACTIVE_MEASUREMENTS.DAILY_CALORIES_BURNED,
+							ACTIVE_MEASUREMENTS.SLEEP_DURATION,
+						],
+					},
+					usersID,
+					date: { $in: datesArray },
+				},
+				{ value: true, date: true, measurementCode: true, _id: false }
+			)
+				.sort({ date: -1 })
+				.lean(),
 			getReducedMeasurementsConfig(),
 		]);
+		console.log(dailyMeasurementsSum);
+		const groupedMeasurements = dailyMeasurementsSum.reduce(
+			(acc, item) => {
+				if (!acc[item.measurementCode]) {
+					acc[item.measurementCode] = [item];
+				} else {
+					acc[item.measurementCode] = [...acc[item.measurementCode], item];
+				}
+				return acc;
+			},
+			{
+				[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION]: [],
+				[ACTIVE_MEASUREMENTS.DAILY_CALORIES_BURNED]: [],
+				[ACTIVE_MEASUREMENTS.SLEEP_DURATION]: [],
+			} as { [key: string]: { value: number; date: Date }[] | [] }
+		);
 
 		const sleepPrecision = reducedMeasurementsConfig[ACTIVE_MEASUREMENTS.SLEEP_DURATION].precision || 2;
 		const activityPrecision = reducedMeasurementsConfig[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION].precision || 2;
@@ -61,8 +91,13 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 
 		const data = datesArray
 			.map((date) => {
-				const sleepDurationByDate = dailySleep.sleepDuration.find((item) => item.date.toISOString() === date.toISOString());
-				const activityDurationByDate = activity[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION].find(
+				const sleepDurationByDate = groupedMeasurements[ACTIVE_MEASUREMENTS.SLEEP_DURATION].find(
+					(item) => item.date.toISOString() === date.toISOString()
+				);
+				const activityDurationByDate = groupedMeasurements[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION].find(
+					(item) => item.date.toISOString() === date.toISOString()
+				);
+				const caloriesBurnedByDate = groupedMeasurements[ACTIVE_MEASUREMENTS.DAILY_CALORIES_BURNED].find(
 					(item) => item.date.toISOString() === date.toISOString()
 				);
 				const sleepTime = sleepDurationByDate?.value || 0;
@@ -73,7 +108,7 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 					date,
 					activity: {
 						time: decimalAdjust(activityTime, activityPrecision),
-						calories: 0,
+						calories: decimalAdjust(caloriesBurnedByDate?.value || 0, 0),
 					},
 					sleep: {
 						time: decimalAdjust(sleepTime, sleepPrecision),
@@ -84,6 +119,7 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 				};
 			})
 			.reverse();
+		console.log(data);
 		responseJSON.data = data;
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);

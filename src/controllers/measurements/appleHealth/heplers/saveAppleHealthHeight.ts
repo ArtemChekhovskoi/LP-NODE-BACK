@@ -1,10 +1,10 @@
 import { HealthValue } from "@constants/measurements";
-import { ClientSession, Types } from "mongoose";
+import { Types } from "mongoose";
 import { UsersHeight } from "@models/users_height";
 
 const { ObjectId } = Types;
 
-const saveAppleHealthHeight = async (height: HealthValue[], usersID: string, mongoSession: ClientSession) => {
+const saveAppleHealthHeight = (height: HealthValue[], usersID: string) => {
 	if (!height || height.length === 0) {
 		throw new Error("No height data");
 	}
@@ -26,9 +26,12 @@ const saveAppleHealthHeight = async (height: HealthValue[], usersID: string, mon
 		};
 	});
 
-	await UsersHeight.bulkWrite(heightBulkUpdateArray, { session: mongoSession });
-
-	return true;
+	return [
+		{
+			data: heightBulkUpdateArray,
+			model: UsersHeight.collection.name,
+		},
+	];
 };
 
 export default saveAppleHealthHeight;

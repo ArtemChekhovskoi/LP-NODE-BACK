@@ -1,0 +1,695 @@
+[
+  {
+    "code": 1,
+    "shortName": "americanFootball",
+    "fullName": "American Football",
+    "emoji": {
+      "raw": "🏈",
+      "unicode": "U+1F3C8"
+    }
+  },
+  {
+    "code": 2,
+    "shortName": "archery",
+    "fullName": "Archery",
+    "emoji": {
+      "raw": "🏹",
+      "unicode": "U+1F3F9"
+    }
+  },
+  {
+    "code": 3,
+    "shortName": "australianFootball",
+    "fullName": "Australian Football",
+    "emoji": {
+      "raw": "🏉",
+      "unicode": "U+1F3C9"
+    }
+  },
+  {
+    "code": 4,
+    "shortName": "badminton",
+    "fullName": "Badminton",
+    "emoji": {
+      "raw": "🏸",
+      "unicode": "U+1F3F8"
+    }
+  },
+  {
+    "code": 5,
+    "shortName": "baseball",
+    "fullName": "Baseball",
+    "emoji": {
+      "raw": "⚾",
+      "unicode": "U+26BE"
+    }
+  },
+  {
+    "code": 6,
+    "shortName": "basketball",
+    "fullName": "Basketball",
+    "emoji": {
+      "raw": "🏀",
+      "unicode": "U+1F3C0"
+    }
+  },
+  {
+    "code": 7,
+    "shortName": "bowling",
+    "fullName": "Bowling",
+    "emoji": {
+      "raw": "🎳",
+      "unicode": "U+1F3B3"
+    }
+  },
+  {
+    "code": 8,
+    "shortName": "boxing",
+    "fullName": "Boxing",
+    "emoji": {
+      "raw": "🥊",
+      "unicode": "U+1F94A"
+    }
+  },
+  {
+    "code": 9,
+    "shortName": "climbing",
+    "fullName": "Climbing",
+    "emoji": {
+      "raw": "🧗",
+      "unicode": "U+1F9D7"
+    }
+  },
+  {
+    "code": 10,
+    "shortName": "cricket",
+    "fullName": "Cricket",
+    "emoji": {
+      "raw": "🏏",
+      "unicode": "U+1F3CF"
+    }
+  },
+  {
+    "code": 11,
+    "shortName": "crossTraining",
+    "fullName": "Cross Training",
+    "emoji": {
+      "raw": "🏋️",
+      "unicode": "U+1F3CB"
+    }
+  },
+  {
+    "code": 12,
+    "shortName": "curling",
+    "fullName": "Curling",
+    "emoji": {
+      "raw": "🥌",
+      "unicode": "U+1F91C"
+    }
+  },
+  {
+    "code": 13,
+    "shortName": "cycling",
+    "fullName": "Cycling",
+    "emoji": {
+      "raw": "🚴",
+      "unicode": "U+1F6B4"
+    }
+  },
+  {
+    "code": 14,
+    "shortName": "dance",
+    "fullName": "Dance",
+    "emoji": {
+      "raw": "💃",
+      "unicode": "U+1F483"
+    }
+  },
+  {
+    "code": 15,
+    "shortName": "danceInspiredTraining",
+    "fullName": "Dance Inspired Training",
+    "emoji": {
+      "raw": "💃",
+      "unicode": "U+1F483"
+    }
+  },
+  {
+    "code": 16,
+    "shortName": "elliptical",
+    "fullName": "Elliptical",
+    "emoji": {
+      "raw": "🏃",
+      "unicode": "U+1F3C3"
+    }
+  },
+  {
+    "code": 17,
+    "shortName": "equestrianSports",
+    "fullName": "Equestrian Sports",
+    "emoji": {
+      "raw": "🏇",
+      "unicode": "U+1F3C7"
+    }
+  },
+  {
+    "code": 18,
+    "shortName": "fencing",
+    "fullName": "Fencing",
+    "emoji": {
+      "raw": "🤺",
+      "unicode": "U+1F93A"
+    }
+  },
+  {
+    "code": 19,
+    "shortName": "fishing",
+    "fullName": "Fishing",
+    "emoji": {
+      "raw": "🎣",
+      "unicode": "U+1F3A3"
+    }
+  },
+  {
+    "code": 20,
+    "shortName": "functionalStrengthTraining",
+    "fullName": "Functional Strength Training",
+    "emoji": {
+      "raw": "🏋️",
+      "unicode": "U+1F3CB"
+    }
+  },
+  {
+    "code": 21,
+    "shortName": "golf",
+    "fullName": "Golf",
+    "emoji": {
+      "raw": "⛳",
+      "unicode": "U+26F3"
+    }
+  },
+  {
+    "code": 22,
+    "shortName": "gymnastics",
+    "fullName": "Gymnastics",
+    "emoji": {
+      "raw": "🤸",
+      "unicode": "U+1F938"
+    }
+  },
+  {
+    "code": 23,
+    "shortName": "handball",
+    "fullName": "Handball",
+    "emoji": {
+      "raw": "🤾",
+      "unicode": "U+1F93E"
+    }
+  },
+  {
+    "code": 24,
+    "shortName": "hiking",
+    "fullName": "Hiking",
+    "emoji": {
+      "raw": "🥾",
+      "unicode": "U+1F97E"
+    }
+  },
+  {
+    "code": 25,
+    "shortName": "hockey",
+    "fullName": "Hockey",
+    "emoji": {
+      "raw": "🏒",
+      "unicode": "U+1F3D2"
+    }
+  },
+  {
+    "code": 26,
+    "shortName": "hunting",
+    "fullName": "Hunting",
+    "emoji": {
+      "raw": "🦌",
+      "unicode": "U+1F98C"
+    }
+  },
+  {
+    "code": 27,
+    "shortName": "lacrosse",
+    "fullName": "Lacrosse",
+    "emoji": {
+      "raw": "🥍",
+      "unicode": "U+1F94D"
+    }
+  },
+  {
+    "code": 28,
+    "shortName": "martialArts",
+    "fullName": "Martial Arts",
+    "emoji": {
+      "raw": "🥋",
+      "unicode": "U+1F94B"
+    }
+  },
+  {
+    "code": 29,
+    "shortName": "mindAndBody",
+    "fullName": "Mind And Body",
+    "emoji": {
+      "raw": "🧘",
+      "unicode": "U+1F9D8"
+    }
+  },
+  {
+    "code": 30,
+    "shortName": "mixedMetabolicCardioTraining",
+    "fullName": "Mixed Metabolic Cardio Training",
+    "emoji": {
+      "raw": "🏃",
+      "unicode": "U+1F3C3"
+    }
+  },
+  {
+    "code": 31,
+    "shortName": "paddleSports",
+    "fullName": "Paddle Sports",
+    "emoji": {
+      "raw": "🛶",
+      "unicode": "U+1F6F6"
+    }
+  },
+  {
+    "code": 32,
+    "shortName": "play",
+    "fullName": "Play",
+    "emoji": {
+      "raw": "⛹️",
+      "unicode": "U+26F9"
+    }
+  },
+  {
+    "code": 33,
+    "shortName": "preparationAndRecovery",
+    "fullName": "Preparation And Recovery",
+    "emoji": {
+      "raw": "🧖",
+      "unicode": "U+1F9D6"
+    }
+  },
+  {
+    "code": 34,
+    "shortName": "racquetball",
+    "fullName": "Racquetball",
+    "emoji": {
+      "raw": "🏸",
+      "unicode": "U+1F3F8"
+    }
+  },
+  {
+    "code": 35,
+    "shortName": "rowing",
+    "fullName": "Rowing",
+    "emoji": {
+      "raw": "🚣",
+      "unicode": "U+1F6A3"
+    }
+  },
+  {
+    "code": 36,
+    "shortName": "rugby",
+    "fullName": "Rugby",
+    "emoji": {
+      "raw": "🏉",
+      "unicode": "U+1F3C9"
+    }
+  },
+  {
+    "code": 37,
+    "shortName": "running",
+    "fullName": "Running",
+    "emoji": {
+      "raw": "🏃",
+      "unicode": "U+1F3C3"
+    }
+  },
+  {
+    "code": 38,
+    "shortName": "sailing",
+    "fullName": "Sailing",
+    "emoji": {
+      "raw": "⛵",
+      "unicode": "U+26F5"
+    }
+  },
+  {
+    "code": 39,
+    "shortName": "skatingSports",
+    "fullName": "Skating Sports",
+    "emoji": {
+      "raw": "⛸",
+      "unicode": "U+26F8"
+    }
+  },
+  {
+    "code": 40,
+    "shortName": "snowSports",
+    "fullName": "Snow Sports",
+    "emoji": {
+      "raw": "⛷",
+      "unicode": "U+1F3C2"
+    }
+  },
+  {
+    "code": 41,
+    "shortName": "soccer",
+    "fullName": "Soccer",
+    "emoji": {
+      "raw": "⚽",
+      "unicode": "U+26BD"
+    }
+  },
+  {
+    "code": 42,
+    "shortName": "softball",
+    "fullName": "Softball",
+    "emoji": {
+      "raw": "⚾",
+      "unicode": "U+1F3BE"
+    }
+  },
+  {
+    "code": 43,
+    "shortName": "squash",
+    "fullName": "Squash",
+    "emoji": {
+      "raw": "🥎",
+      "unicode": "U+1F94E"
+    }
+  },
+  {
+    "code": 44,
+    "shortName": "stairClimbing",
+    "fullName": "Stair Climbing",
+    "emoji": {
+      "raw": "🏃",
+      "unicode": "U+1F3C3"
+    }
+  },
+  {
+    "code": 45,
+    "shortName": "surfingSports",
+    "fullName": "Surfing Sports",
+    "emoji": {
+      "raw": "🏄",
+      "unicode": "U+1F3C4"
+    }
+  },
+  {
+    "code": 46,
+    "shortName": "swimming",
+    "fullName": "Swimming",
+    "emoji": {
+      "raw": "🏊",
+      "unicode": "U+1F3CA"
+    }
+  },
+  {
+    "code": 47,
+    "shortName": "tableTennis",
+    "fullName": "Table Tennis",
+    "emoji": {
+      "raw": "🏓",
+      "unicode": "U+1F3D3"
+    }
+  },
+  {
+    "code": 48,
+    "shortName": "tennis",
+    "fullName": "Tennis",
+    "emoji": {
+      "raw": "🎾",
+      "unicode": "U+1F3BE"
+    }
+  },
+  {
+    "code": 49,
+    "shortName": "trackAndField",
+    "fullName": "Track And Field",
+    "emoji": {
+      "raw": "🏃",
+      "unicode": "U+1F3C3"
+    }
+  },
+  {
+    "code": 50,
+    "shortName": "traditionalStrengthTraining",
+    "fullName": "Traditional Strength Training",
+    "emoji": {
+      "raw": "🏋️",
+      "unicode": "U+1F3CB"
+    }
+  },
+  {
+    "code": 51,
+    "shortName": "volleyball",
+    "fullName": "Volleyball",
+    "emoji": {
+      "raw": "🏐",
+      "unicode": "U+1F3D0"
+    }
+  },
+  {
+    "code": 52,
+    "shortName": "walking",
+    "fullName": "Walking",
+    "emoji": {
+      "raw": "🚶",
+      "unicode": "U+1F6B6"
+    }
+  },
+  {
+    "code": 53,
+    "shortName": "waterFitness",
+    "fullName": "Water Fitness",
+    "emoji": {
+      "raw": "🏊",
+      "unicode": "U+1F3CA"
+    }
+  },
+  {
+    "code": 54,
+    "shortName": "waterPolo",
+    "fullName": "Water Polo",
+    "emoji": {
+      "raw": "🤽",
+      "unicode": "U+1F93D"
+    }
+  },
+  {
+    "code": 55,
+    "shortName": "waterSports",
+    "fullName": "Water Sports",
+    "emoji": {
+      "raw": "🤽",
+      "unicode": "U+1F93D"
+    }
+  },
+  {
+    "code": 56,
+    "shortName": "wrestling",
+    "fullName": "Wrestling",
+    "emoji": {
+      "raw": "🤼",
+      "unicode": "U+1F93C"
+    }
+  },
+  {
+    "code": 57,
+    "shortName": "yoga",
+    "fullName": "Yoga",
+    "emoji": {
+      "raw": "🧘",
+      "unicode": "U+1F9D8"
+    }
+  },
+  {
+    "code": 58,
+    "shortName": "barre",
+    "fullName": "Barre",
+    "emoji": {
+      "raw": "🩰",
+      "unicode": "U+1FA70"
+    }
+  },
+  {
+    "code": 59,
+    "shortName": "coreTraining",
+    "fullName": "Core Training",
+    "emoji": {
+      "raw": "🏋️",
+      "unicode": "U+1F3CB"
+    }
+  },
+  {
+    "code": 60,
+    "shortName": "crossCountrySkiing",
+    "fullName": "Cross Country Skiing",
+    "emoji": {
+      "raw": "⛷",
+      "unicode": "U+1F3C2"
+    }
+  },
+  {
+    "code": 61,
+    "shortName": "downhillSkiing",
+    "fullName": "Downhill Skiing",
+    "emoji": {
+      "raw": "⛷",
+      "unicode": "U+1F3C2"
+    }
+  },
+  {
+    "code": 62,
+    "shortName": "flexibility",
+    "fullName": "Flexibility",
+    "emoji": {
+      "raw": "🧘",
+      "unicode": "U+1F9D8"
+    }
+  },
+  {
+    "code": 63,
+    "shortName": "highIntensityIntervalTraining",
+    "fullName": "High Intensity Interval Training",
+    "emoji": {
+      "raw": "🏃",
+      "unicode": "U+1F3C3"
+    }
+  },
+  {
+    "code": 64,
+    "shortName": "jumpRope",
+    "fullName": "Jump Rope",
+    "emoji": {
+      "raw": "🏃",
+      "unicode": "U+1F3C3"
+    }
+  },
+  {
+    "code": 65,
+    "shortName": "kickboxing",
+    "fullName": "Kickboxing",
+    "emoji": {
+      "raw": "🥊",
+      "unicode": "U+1F94A"
+    }
+  },
+  {
+    "code": 66,
+    "shortName": "pilates",
+    "fullName": "Pilates",
+    "emoji": {
+      "raw": "🧘‍️",
+      "unicode": "U+1F9D8"
+    }
+  },
+  {
+    "code": 67,
+    "shortName": "snowboarding",
+    "fullName": "Snowboarding",
+    "emoji": {
+      "raw": "🏂",
+      "unicode": "U+1F3C2"
+    }
+  },
+  {
+    "code": 68,
+    "shortName": "stairs",
+    "fullName": "Stairs",
+    "emoji": {
+      "raw": "🏃",
+      "unicode": "U+1F3C3"
+    }
+  },
+  {
+    "code": 69,
+    "shortName": "stepTraining",
+    "fullName": "Step Training",
+    "emoji": {
+      "raw": "🚶️",
+      "unicode": "U+1F6B6"
+    }
+  },
+  {
+    "code": 70,
+    "shortName": "wheelchairWalkPace",
+    "fullName": "Wheelchair Walk Pace",
+    "emoji": {
+      "raw": "♿",
+      "unicode": "U+267F"
+    }
+  },
+  {
+    "code": 71,
+    "shortName": "wheelchairRunPace",
+    "fullName": "Wheelchair Run Pace",
+    "emoji": {
+      "raw": "♿",
+      "unicode": "U+267F"
+    }
+  },
+  {
+    "code": 72,
+    "shortName": "taiChi",
+    "fullName": "Tai Chi",
+    "emoji": {
+      "raw": "🀄",
+      "unicode": "U+1F004"
+    }
+  },
+  {
+    "code": 73,
+    "shortName": "mixedCardio",
+    "fullName": "Mixed Cardio",
+    "emoji": {
+      "raw": "🏃",
+      "unicode": "U+1F3C3"
+    }
+  },
+  {
+    "code": 74,
+    "shortName": "handCycling",
+    "fullName": "Hand Cycling",
+    "emoji": {
+      "raw": "🚴",
+      "unicode": "U+1F6B4"
+    }
+  },
+  {
+    "code": 75,
+    "shortName": "discSports",
+    "fullName": "Disc Sports",
+    "emoji": {
+      "raw": "🥏",
+      "unicode": "U+1F3CF"
+    }
+  },
+  {
+    "code": 76,
+    "shortName": "fitnessGaming",
+    "fullName": "Fitness Gaming",
+    "emoji": {
+      "raw": "🎮",
+      "unicode": "U+1F3AE"
+    }
+  },
+  {
+    "code": 3000,
+    "shortName": "other",
+    "fullName": "Other",
+    "emoji": {
+      "raw": "❔",
+      "unicode": "U+2754"
+    }
+  }
+]

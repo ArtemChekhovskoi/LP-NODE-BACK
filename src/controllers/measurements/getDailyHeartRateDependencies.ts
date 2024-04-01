@@ -11,6 +11,8 @@ import isBetween from "dayjs/plugin/isBetween";
 import dayjs from "dayjs";
 import { UsersHeartRate } from "@models/users_heart_rate";
 import filterMeasurementsByPeriod from "@controllers/measurements/helpers/filterMeasurementsByPeriod";
+import { ActivitiesConfig } from "@models/activities_config";
+import calculateMeasurementPercentages from "@controllers/measurements/helpers/calculateMeasurementPercentages";
 
 dayjs.extend(isBetween);
 
@@ -19,13 +21,12 @@ interface RequestQuery {
 }
 
 interface SleepValue {
-	value: string;
+	value: number;
 	startDate: Date;
 	endDate: Date;
 }
 
-const MINUTES_IN_DAY = 1440;
-const SLEEP_VALUES_TO_INCLUDE = ["REM", "DEEP", "CORE", "AWAKE"];
+const SLEEP_VALUES_TO_INCLUDE = [1, 2, 3, 4, 5];
 
 const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
@@ -51,7 +52,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 		const endOfTheDay = dayjs(startOfTheDay).utc().endOf("day").toDate();
 		const NinePMPrevDay = dayjs(startOfTheDay).subtract(3, "hours").toDate();
 
-		const [heartRateConfig, usersHeartRate, usersDailySleep] = await Promise.all([
+		const [heartRateConfig, usersHeartRate, usersDailySleep, usersActivity, activitiesConfig] = await Promise.all([
 			Measurements.findOne(
 				{ code: ACTIVE_MEASUREMENTS.HEART_RATE_VARIABILITY },
 				{ code: true, name: true, unit: true, precision: true, _id: true }
@@ -69,6 +70,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 				.lean()
 				.sort({ startDate: 1 }),
 			UsersActivity.find({ usersID, startDate: { $gte: NinePMPrevDay }, endDate: { $lte: endOfTheDay } }).lean(),
+			ActivitiesConfig.find({}),
 		]);
 
 		if (!usersHeartRate || usersHeartRate.length === 0) {
@@ -105,26 +107,22 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 				sleepBySourceName = Object.values(sleepReducedBySourceName)[sourceIndexWithMoreInfo];
 			}
 		}
+
 		const sleepWithPercentages = sleepBySourceName
 			.map((sleep) => {
-				if (dayjs(sleep.startDate).isBefore(dayjs(startOfTheDay)) && dayjs(sleep.endDate).isBefore(dayjs(startOfTheDay))) {
-					return;
-				}
-				const sleepStart = dayjs(sleep.startDate).isBefore(startOfTheDay) ? dayjs(startOfTheDay) : dayjs(sleep.startDate);
-
-				const sleepDuration = dayjs(sleep.endDate).diff(sleepStart, "minute");
-				const sleepStartPercentage = (dayjs(sleepStart).diff(startOfTheDay, "minute") / MINUTES_IN_DAY).toFixed(2);
-				let sleepEndPercentage = +(+sleepStartPercentage + sleepDuration / MINUTES_IN_DAY).toFixed(2);
-				if (sleepEndPercentage > 1) {
-					sleepEndPercentage = 1.0;
-				}
-				// eslint-disable-next-line consistent-return
-				return {
-					startPercentage: +sleepStartPercentage,
-					endPercentage: +sleepEndPercentage,
-				};
+				return calculateMeasurementPercentages(sleep, startOfTheDay);
 			})
 			.filter((sleep) => sleep);
+		const activityWithPercentages = usersActivity.map((activity) => {
+			const { startPercentage, endPercentage } = calculateMeasurementPercentages(activity, startOfTheDay);
+			const activityConfig = activitiesConfig.find((config) => config.code === activity.activityType);
+			return {
+				startPercentage,
+				endPercentage,
+				activityName: activityConfig?.fullName,
+				emoji: activityConfig?.emoji,
+			};
+		});
 		const everyHalfAndHourHeartRate = filterMeasurementsByPeriod(usersHeartRate, 30);
 		const heartRatePrepared = [
 			{
@@ -175,11 +173,10 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			});
 			dayTime = dayTime.add(30, "minutes");
 		}
-
 		responseJSON.data = {
 			heartRate: { ...heartRateWithScales, measurements: heartRateWithZeroValues },
 			sleep: sleepWithPercentages,
-			activity: {},
+			activity: activityWithPercentages,
 		};
 		return res.status(200).json(responseJSON);
 	} catch (e) {

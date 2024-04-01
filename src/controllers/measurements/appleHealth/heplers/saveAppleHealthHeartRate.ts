@@ -1,12 +1,12 @@
 import { HealthValue } from "@constants/measurements";
 import { UsersHeartRate } from "@models/users_heart_rate";
-import { ClientSession, Types } from "mongoose";
+import { Types } from "mongoose";
 import calculateMinMaxAvg from "@controllers/measurements/helpers/calculateMinMaxAvg";
 import { UsersDailyHeartRate } from "@models/users_daily_heart_rate";
 
 const { ObjectId } = Types;
 
-const saveAppleHealthHeartRate = async (heartRate: HealthValue[], usersID: string, mongoSession: ClientSession) => {
+const saveAppleHealthHeartRate = async (heartRate: HealthValue[], usersID: string) => {
 	if (!heartRate || heartRate.length === 0) {
 		throw new Error("No heart rate data");
 	}
@@ -83,10 +83,16 @@ const saveAppleHealthHeartRate = async (heartRate: HealthValue[], usersID: strin
 		};
 	});
 
-	await UsersHeartRate.bulkWrite(heartRateBulkUpdateArray, { session: mongoSession });
-	await UsersDailyHeartRate.bulkWrite(dailyHeartRateBulkWrite, { session: mongoSession });
-
-	return true;
+	return [
+		{
+			data: heartRateBulkUpdateArray,
+			model: UsersHeartRate.collection.name,
+		},
+		{
+			data: dailyHeartRateBulkWrite,
+			model: UsersDailyHeartRate.collection.name,
+		},
+	];
 };
 
 export default saveAppleHealthHeartRate;

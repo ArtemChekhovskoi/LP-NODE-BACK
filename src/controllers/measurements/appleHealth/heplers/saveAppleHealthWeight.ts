@@ -1,11 +1,11 @@
 import { HealthValue } from "@constants/measurements";
-import { ClientSession, Types } from "mongoose";
+import { Types } from "mongoose";
 import getStartOfDay from "@helpers/getStartOfTheDay";
 import { UsersWeight } from "@models/users_weight";
 
 const { ObjectId } = Types;
 
-const saveAppleHealthWeight = async (weight: HealthValue[], usersID: string, mongoSession: ClientSession) => {
+const saveAppleHealthWeight = (weight: HealthValue[], usersID: string) => {
 	if (!weight || weight.length === 0) {
 		throw new Error("No weight data");
 	}
@@ -29,9 +29,12 @@ const saveAppleHealthWeight = async (weight: HealthValue[], usersID: string, mon
 		};
 	});
 
-	await UsersWeight.bulkWrite(weightBulkUpdateArray, { session: mongoSession });
-
-	return true;
+	return [
+		{
+			data: weightBulkUpdateArray,
+			model: UsersWeight.collection.name,
+		},
+	];
 };
 
 export default saveAppleHealthWeight;

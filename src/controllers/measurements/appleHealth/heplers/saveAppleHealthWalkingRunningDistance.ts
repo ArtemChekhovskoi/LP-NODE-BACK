@@ -1,16 +1,12 @@
 import { ACTIVE_MEASUREMENTS, HealthValue } from "@constants/measurements";
-import { ClientSession, Types } from "mongoose";
+import { Types } from "mongoose";
 import { UsersWalkingRunningDistance } from "@models/users_walking_running_distance";
 import sumMeasurementsByDay from "@controllers/measurements/helpers/sumMeasurementsByDay";
 import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
 
 const { ObjectId } = Types;
 
-const saveAppleHealthWalkingRunningDistance = async (
-	walkingRunningDistance: HealthValue[],
-	usersID: string,
-	mongoSession: ClientSession
-) => {
+const saveAppleHealthWalkingRunningDistance = (walkingRunningDistance: HealthValue[], usersID: string) => {
 	if (!walkingRunningDistance || walkingRunningDistance.length === 0) {
 		throw new Error("No walkingRunningDistance data");
 	}
@@ -55,10 +51,16 @@ const saveAppleHealthWalkingRunningDistance = async (
 		},
 	}));
 
-	await UsersDailyMeasurementsSum.bulkWrite(dailyDistanceBulkWrite, { session: mongoSession });
-	await UsersWalkingRunningDistance.bulkWrite(distanceBulkWrite, { session: mongoSession });
-
-	return true;
+	return [
+		{
+			data: dailyDistanceBulkWrite,
+			model: UsersDailyMeasurementsSum.collection.name,
+		},
+		{
+			data: distanceBulkWrite,
+			model: UsersWalkingRunningDistance.collection.name,
+		},
+	];
 };
 
 export default saveAppleHealthWalkingRunningDistance;

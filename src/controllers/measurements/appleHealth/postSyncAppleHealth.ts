@@ -2,7 +2,7 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import { HealthValue, RAW_MEASUREMENT_CODES, RAW_MEASUREMENT_CODES_ARRAY } from "@constants/measurements";
-import mongoose, { ClientSession, Types } from "mongoose";
+import mongoose, { ClientSession, Model, Types } from "mongoose";
 import saveAppleHealthHeight from "@controllers/measurements/appleHealth/heplers/saveAppleHealthHeight";
 import saveAppleHealthWeight from "@controllers/measurements/appleHealth/heplers/saveAppleHealthWeight";
 import saveAppleHealthWalkingRunningDistance from "@controllers/measurements/appleHealth/heplers/saveAppleHealthWalkingRunningDistance";
@@ -11,6 +11,15 @@ import saveAppleHealthSleep, { ISleepSample } from "@controllers/measurements/ap
 import saveAppleHealthHeartRate from "@controllers/measurements/appleHealth/heplers/saveAppleHealthHeartRate";
 import saveAppleHealthActivity, { IActivitySample } from "@controllers/measurements/appleHealth/heplers/saveAppleHealthActivity";
 import { Users } from "@models/users";
+import { UsersActivity } from "@models/users_activity";
+import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
+import { UsersHeartRate } from "@models/users_heart_rate";
+import { UsersDailyHeartRate } from "@models/users_daily_heart_rate";
+import { UsersHeight } from "@models/users_height";
+import { UsersWeight } from "@models/users_weight";
+import { UsersSleep } from "@models/users_sleep";
+import { UsersSteps } from "@models/users_steps";
+import { UsersWalkingRunningDistance } from "@models/users_walking_running_distance";
 
 const { ObjectId } = Types;
 
@@ -24,14 +33,30 @@ interface IMeasurementsObject {
 	sleep: ISleepSample[] | null;
 }
 
-const SYNC_STRATEGY = {
+interface IPreparedMeasurementsByCollectionName {
+	[key: string]: any[];
+}
+
+const PREPARE_STRATEGY = {
 	[RAW_MEASUREMENT_CODES.HEART_RATE]: saveAppleHealthHeartRate,
 	[RAW_MEASUREMENT_CODES.HEIGHT]: saveAppleHealthHeight,
 	[RAW_MEASUREMENT_CODES.WEIGHT]: saveAppleHealthWeight,
 	[RAW_MEASUREMENT_CODES.WALKING_RUNNING_DISTANCE]: saveAppleHealthWalkingRunningDistance,
 	[RAW_MEASUREMENT_CODES.STEPS]: saveAppleHealthSteps,
-	// [RAW_MEASUREMENT_CODES.ACTIVITY]: saveAppleHealthActivity,
+	[RAW_MEASUREMENT_CODES.ACTIVITY]: saveAppleHealthActivity,
 	[RAW_MEASUREMENT_CODES.SLEEP]: saveAppleHealthSleep,
+};
+
+const MODELS_BY_COLLECTION_NAME = {
+	[UsersActivity.collection.name]: UsersActivity,
+	[UsersDailyMeasurementsSum.collection.name]: UsersDailyMeasurementsSum,
+	[UsersHeartRate.collection.name]: UsersHeartRate,
+	[UsersDailyHeartRate.collection.name]: UsersDailyHeartRate,
+	[UsersHeight.collection.name]: UsersHeight,
+	[UsersWeight.collection.name]: UsersWeight,
+	[UsersSleep.collection.name]: UsersSleep,
+	[UsersSteps.collection.name]: UsersSteps,
+	[UsersWalkingRunningDistance.collection.name]: UsersWalkingRunningDistance,
 };
 const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
@@ -41,14 +66,15 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		lastSyncDate: "",
 	};
 	let mongoSession: ClientSession | null = null;
+
+	const syncStartTime = process.hrtime();
+	let transStartTime;
 	try {
+
 		const { usersID } = req;
 		const measurements = req.body as IMeasurementsObject;
 		const now = new Date();
 
-		logger.info(`postSyncAppleHealth: ${JSON.stringify(measurements)}`);
-		logger.info(`activity: ${JSON.stringify(measurements?.activity)}`);
-		logger.info(`sleep: ${JSON.stringify(measurements?.sleep)}`);
 		if (Object.keys(measurements).some((rawMeasurementCode) => !RAW_MEASUREMENT_CODES_ARRAY.includes(rawMeasurementCode))) {
 			responseJSON.error = "Invalid measurement code";
 			responseJSON.errorCode = "INVALID_MEASUREMENT_CODE";
@@ -58,15 +84,35 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		if (!usersID) {
 			throw new Error("usersID couldn't be found");
 		}
-		mongoSession = await mongoose.startSession();
-		await mongoSession.withTransaction(async () => {
-			for (const [measurementCode, measurementsArray] of Object.entries(measurements)) {
-				if (measurementsArray && measurementsArray.length > 0 && SYNC_STRATEGY[measurementCode] && mongoSession) {
-					const result = await SYNC_STRATEGY[measurementCode](measurementsArray, usersID, mongoSession);
-					if (!result) {
-						throw new Error(`Error at ${measurementCode}`);
+
+		const preparedMeasurementsByCollectionName: IPreparedMeasurementsByCollectionName = {};
+
+		for (const [measurementCode, measurementsArray] of Object.entries(measurements)) {
+			if (measurementsArray && measurementsArray.length > 0 && PREPARE_STRATEGY[measurementCode]) {
+				const preparedMeasurementsArray = await PREPARE_STRATEGY[measurementCode](measurementsArray, usersID);
+				if (!preparedMeasurementsArray || !preparedMeasurementsArray.length) {
+					throw new Error(`Error at ${measurementCode}`);
+				}
+
+				for (const preparedMeasurements of preparedMeasurementsArray) {
+					if (!preparedMeasurementsByCollectionName[preparedMeasurements.model]) {
+						preparedMeasurementsByCollectionName[preparedMeasurements.model] = preparedMeasurements.data;
+					} else {
+						preparedMeasurementsByCollectionName[preparedMeasurements.model].push(...preparedMeasurements.data);
 					}
 				}
+			}
+		}
+
+		transStartTime = process.hrtime();
+		mongoSession = await mongoose.startSession();
+		await mongoSession.withTransaction(async () => {
+			for (const [collectionName, preparedMeasurements] of Object.entries(preparedMeasurementsByCollectionName)) {
+				const model = MODELS_BY_COLLECTION_NAME[collectionName] as Model<any>;
+				if (!model || !mongoSession) {
+					throw new Error(`Model not found for ${collectionName}`);
+				}
+				await model.bulkWrite(preparedMeasurements, { session: mongoSession });
 			}
 			await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate: now, lastUpdated: now }, { mongoSession });
 		});
@@ -82,8 +128,14 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		return res.status(500).json(responseJSON);
 	} finally {
 		if (mongoSession) {
-			await mongoSession.endSession();
+			await mongoSession?.endSession();
 		}
+		const startDiff = process.hrtime(syncStartTime);
+		const transDiff = process.hrtime(transStartTime);
+		const overallDuration = startDiff[0] * 1e9 + startDiff[1];
+		const transDuration = transDiff[0] * 1e9 + transDiff[1];
+		console.log(`Overall sync time: ${overallDuration / 1e6} ms`);
+		console.log(`Transaction time: ${transDuration / 1e6} ms`);
 	}
 };
 
