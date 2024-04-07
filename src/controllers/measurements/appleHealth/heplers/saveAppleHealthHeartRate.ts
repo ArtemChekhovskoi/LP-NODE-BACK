@@ -3,15 +3,24 @@ import { UsersHeartRate } from "@models/users_heart_rate";
 import { Types } from "mongoose";
 import calculateMinMaxAvg from "@controllers/measurements/helpers/calculateMinMaxAvg";
 import { UsersDailyHeartRate } from "@models/users_daily_heart_rate";
+import dayjs from "dayjs";
 
 const { ObjectId } = Types;
 
-const saveAppleHealthHeartRate = async (heartRate: HealthValue[], usersID: string) => {
+const saveAppleHealthHeartRate = async (heartRate: HealthValue[], usersID: string, utcOffset: number) => {
 	if (!heartRate || heartRate.length === 0) {
 		throw new Error("No heart rate data");
 	}
 
-	const heartRateByDate = heartRate.reduce(
+	const heartRateWithCorrectDates = heartRate.map((measurement) => {
+		return {
+			...measurement,
+			startDate: dayjs(measurement.startDate).add(utcOffset, "minute").toDate(),
+			endDate: dayjs(measurement.endDate).add(utcOffset, "minute").toDate(),
+		};
+	});
+
+	const heartRateByDate = heartRateWithCorrectDates.reduce(
 		(acc, measurement) => {
 			const date = new Date(measurement.startDate).toISOString().split("T")[0];
 			if (!acc[date]) {
@@ -63,7 +72,7 @@ const saveAppleHealthHeartRate = async (heartRate: HealthValue[], usersID: strin
 		};
 	});
 
-	const heartRateBulkUpdateArray = heartRate.map((measurement) => {
+	const heartRateBulkUpdateArray = heartRateWithCorrectDates.map((measurement) => {
 		return {
 			updateOne: {
 				filter: {

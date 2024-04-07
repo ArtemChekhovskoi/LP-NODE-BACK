@@ -77,8 +77,8 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			return res.status(200).json(responseJSON);
 		}
 
-		if (!heartRateConfig) {
-			throw new Error("No heart rate config found");
+		if (!heartRateConfig || !activitiesConfig || !activitiesConfig?.length) {
+			throw new Error("No heart rate or activities config found");
 		}
 
 		let sleepBySourceName: SleepValue[] = [];

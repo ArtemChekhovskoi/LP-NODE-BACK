@@ -33,6 +33,11 @@ interface IMeasurementsObject {
 	sleep: ISleepSample[] | null;
 }
 
+interface IRequestBody {
+	measurements: IMeasurementsObject;
+	utcOffset: number;
+}
+
 interface IPreparedMeasurementsByCollectionName {
 	[key: string]: any[];
 }
@@ -70,9 +75,8 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 	const syncStartTime = process.hrtime();
 	let transStartTime;
 	try {
-
 		const { usersID } = req;
-		const measurements = req.body as IMeasurementsObject;
+		const { measurements, utcOffset } = req.body as IRequestBody;
 		const now = new Date();
 
 		if (Object.keys(measurements).some((rawMeasurementCode) => !RAW_MEASUREMENT_CODES_ARRAY.includes(rawMeasurementCode))) {
@@ -89,7 +93,7 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 
 		for (const [measurementCode, measurementsArray] of Object.entries(measurements)) {
 			if (measurementsArray && measurementsArray.length > 0 && PREPARE_STRATEGY[measurementCode]) {
-				const preparedMeasurementsArray = await PREPARE_STRATEGY[measurementCode](measurementsArray, usersID);
+				const preparedMeasurementsArray = await PREPARE_STRATEGY[measurementCode](measurementsArray, usersID, utcOffset);
 				if (!preparedMeasurementsArray || !preparedMeasurementsArray.length) {
 					throw new Error(`Error at ${measurementCode}`);
 				}

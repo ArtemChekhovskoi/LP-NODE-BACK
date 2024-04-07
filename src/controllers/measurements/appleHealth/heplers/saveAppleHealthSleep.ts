@@ -3,6 +3,7 @@ import { UsersSleep } from "@models/users_sleep";
 import sumDailySleep from "@controllers/measurements/helpers/sumDailySleep";
 import { ACTIVE_MEASUREMENTS } from "@constants/measurements";
 import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
+import dayjs from "dayjs";
 
 const { ObjectId } = Types;
 
@@ -12,12 +13,20 @@ export interface ISleepSample {
 	value: number;
 	sourceName: string;
 }
-const saveAppleHealthSleep = (sleep: ISleepSample[], usersID: string) => {
+const saveAppleHealthSleep = (sleep: ISleepSample[], usersID: string, utcOffset: number) => {
 	if (!sleep || sleep.length === 0) {
 		throw new Error("No sleep data");
 	}
 
-	const sleepDuration = sumDailySleep(sleep);
+	const sleepWithCorrectDates = sleep.map((measurement) => {
+		return {
+			...measurement,
+			startDate: dayjs(measurement.startDate).add(utcOffset, "minute").toDate(),
+			endDate: dayjs(measurement.endDate).add(utcOffset, "minute").toDate(),
+		};
+	});
+
+	const sleepDuration = sumDailySleep(sleepWithCorrectDates);
 	const sleepDurationBulkWrite = Object.entries(sleepDuration).map(([date, measurement]) => {
 		return {
 			updateOne: {
@@ -39,7 +48,7 @@ const saveAppleHealthSleep = (sleep: ISleepSample[], usersID: string) => {
 		};
 	});
 
-	const sleepBulkWrite = sleep.map((measurement) => {
+	const sleepBulkWrite = sleepWithCorrectDates.map((measurement) => {
 		return {
 			updateOne: {
 				filter: {

@@ -3,15 +3,24 @@ import { Types } from "mongoose";
 import { UsersSteps } from "@models/users_steps";
 import sumMeasurementsByDay from "@controllers/measurements/helpers/sumMeasurementsByDay";
 import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
+import dayjs from "dayjs";
 
 const { ObjectId } = Types;
 
-const saveAppleHealthSteps = (steps: HealthValue[], usersID: string) => {
+const saveAppleHealthSteps = (steps: HealthValue[], usersID: string, utcOffset: number) => {
 	if (!steps || steps.length === 0) {
 		throw new Error("No steps data");
 	}
 
-	const stepsByDate = sumMeasurementsByDay(steps);
+	const stepsWithCorrectDates = steps.map((measurement) => {
+		return {
+			...measurement,
+			startDate: dayjs(measurement.startDate).add(utcOffset, "minute").toDate(),
+			endDate: dayjs(measurement.endDate).add(utcOffset, "minute").toDate(),
+		};
+	});
+
+	const stepsByDate = sumMeasurementsByDay(stepsWithCorrectDates);
 	const dailyStepsBulkWrite = stepsByDate.map((measurement) => {
 		return {
 			updateOne: {
@@ -32,7 +41,7 @@ const saveAppleHealthSteps = (steps: HealthValue[], usersID: string) => {
 			},
 		};
 	});
-	const stepsBulkWrite = steps.map((measurement) => ({
+	const stepsBulkWrite = stepsWithCorrectDates.map((measurement) => ({
 		updateOne: {
 			filter: {
 				usersID: new ObjectId(usersID),

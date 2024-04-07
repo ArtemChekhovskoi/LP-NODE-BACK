@@ -3,6 +3,7 @@ import { UsersActivity } from "@models/users_activity";
 import { ACTIVE_MEASUREMENTS } from "@constants/measurements";
 import getStartOfDay from "@helpers/getStartOfTheDay";
 import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
+import dayjs from "dayjs";
 
 const { ObjectId } = Types;
 
@@ -24,11 +25,19 @@ interface IActivityTotals {
 		dailyActivityTimeMinutes: number;
 	};
 }
-const saveAppleHealthActivity = (activity: IActivitySample[], usersID: string) => {
+const saveAppleHealthActivity = (activity: IActivitySample[], usersID: string, utcOffset: number) => {
 	if (!activity || activity.length === 0) {
 		throw new Error("No activity data");
 	}
-	const activityTotals = activity.reduce((acc, curr) => {
+
+	const activityWithCorrectDates = activity.map((measurement) => {
+		return {
+			...measurement,
+			startDate: dayjs(measurement.startDate).add(utcOffset, "minute").toDate(),
+			endDate: dayjs(measurement.endDate).add(utcOffset, "minute").toDate(),
+		};
+	});
+	const activityTotals = activityWithCorrectDates.reduce((acc, curr) => {
 		const date = getStartOfDay(curr.startDate).toISOString();
 		const periodActivityMinutes = curr.duration / 60;
 		if (!acc[date]) {
@@ -84,7 +93,7 @@ const saveAppleHealthActivity = (activity: IActivitySample[], usersID: string) =
 			];
 		})
 		.flat();
-	const activityBulkWrite = activity.map((measurement) => ({
+	const activityBulkWrite = activityWithCorrectDates.map((measurement) => ({
 		updateOne: {
 			filter: {
 				usersID: new ObjectId(usersID),
