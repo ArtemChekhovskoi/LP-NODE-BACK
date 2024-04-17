@@ -26,7 +26,7 @@ interface SleepValue {
 	endDate: Date;
 }
 
-const SLEEP_VALUES_TO_INCLUDE = [1, 2, 3, 4, 5];
+const SLEEP_VALUES_TO_INCLUDE = [0, 1, 2, 3, 4, 5];
 
 const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
@@ -54,7 +54,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 
 		const [heartRateConfig, usersHeartRate, usersDailySleep, usersActivity, activitiesConfig] = await Promise.all([
 			Measurements.findOne(
-				{ code: ACTIVE_MEASUREMENTS.HEART_RATE_VARIABILITY },
+				{ code: ACTIVE_MEASUREMENTS.AVG_HEART_RATE },
 				{ code: true, name: true, unit: true, precision: true, _id: true }
 			).lean(),
 			UsersHeartRate.find(
@@ -134,7 +134,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			},
 		];
 
-		const [heartRateWithScales] = getMeasurementsScale(heartRatePrepared);
+		const [heartRateWithScales] = getMeasurementsScale(heartRatePrepared, "maxValue");
 		if (!usersHeartRate || usersHeartRate.length === 0) {
 			responseJSON.data = {
 				heartRate: { ...heartRateWithScales, measurements: [] },

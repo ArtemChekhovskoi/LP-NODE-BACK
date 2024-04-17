@@ -1,5 +1,6 @@
 const MAX_VALUE_MULTIPLIER = 1.2;
 
+type TFieldToMakeScaleFrom = "value" | "maxValue" | "minValue";
 interface GetMeasurementsScaleParams {
 	name: string;
 	unit?: string;
@@ -7,14 +8,17 @@ interface GetMeasurementsScaleParams {
 	precision?: number;
 	measurements: Array<{
 		value: number;
+		maxValue?: number;
+		minValue?: number;
 		date?: Date;
 		startDate?: Date;
 	}>;
 }
-const getMeasurementsScale = (measurementsInfo: GetMeasurementsScaleParams[]) => {
-	const generateScale = (values: number[]) => {
-		const maxValue = Math.max(...values) * MAX_VALUE_MULTIPLIER;
-		const minValue = Math.min(...values);
+const getMeasurementsScale = (measurementsInfo: GetMeasurementsScaleParams[], fieldToMakeScaleFrom: TFieldToMakeScaleFrom = "value") => {
+	const generateScale = (values: (number | undefined)[]) => {
+		const filteredValues = values.filter((value) => value !== undefined) as number[];
+		const maxValue = Math.max(...filteredValues) * MAX_VALUE_MULTIPLIER;
+		const minValue = Math.min(...filteredValues);
 		const scaleValues = [];
 		if (maxValue > 0) {
 			const step = maxValue / 5;
@@ -31,7 +35,7 @@ const getMeasurementsScale = (measurementsInfo: GetMeasurementsScaleParams[]) =>
 	};
 
 	const measurementsValues = measurementsInfo.map((measurement) => {
-		const scaleValues = generateScale(measurement.measurements.map((item) => item.value)).reverse();
+		const scaleValues = generateScale(measurement.measurements.map((item) => item[fieldToMakeScaleFrom])).reverse();
 		const minScaleValue = scaleValues[scaleValues.length - 1];
 		const maxScaleValue = scaleValues[0];
 		return {

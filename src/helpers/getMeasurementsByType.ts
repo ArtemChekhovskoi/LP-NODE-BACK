@@ -39,6 +39,8 @@ interface DailyReflectionsReturn {
 	[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_FEELING]: IReturnValue[];
 }
 
+type GetMeasurementFromDailySumReturn = Partial<Record<DailySumKeys, IReturnValue[]>>;
+
 const prepareMeasurementDataForReturn = (dates: Date[], measurementData: IReturnValue[]) => {
 	return dates.map((date) => {
 		const foundValue = measurementData.find((item) => item.date.getTime() === date.getTime());
@@ -124,7 +126,11 @@ const getHeightByDates = async (dates: Date[], usersID: string): Promise<GetHeig
 	};
 };
 
-const getMeasurementFromDailySum = async (dates: Date[], usersID: string, measurementCode: DailySumKeys) => {
+const getMeasurementFromDailySum = async (
+	dates: Date[],
+	usersID: string,
+	measurementCode: DailySumKeys
+): Promise<GetMeasurementFromDailySumReturn> => {
 	const dailySum = await UsersDailyMeasurementsSum.find(
 		{
 			measurementCode,

@@ -71,7 +71,6 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		lastSyncDate: "",
 	};
 	let mongoSession: ClientSession | null = null;
-
 	const syncStartTime = process.hrtime();
 	let transStartTime;
 	try {
@@ -121,7 +120,6 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 			await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate: now, lastUpdated: now }, { mongoSession });
 		});
 		await mongoSession.endSession();
-
 		responseJSON.lastSyncDate = now.toISOString();
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);

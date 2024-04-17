@@ -7,7 +7,7 @@ import { DATA_PRESENTATION, IDataPresentationByDate } from "@constants/patterns"
 import calculateAverageByDate from "@controllers/patterns/helpers/calculateAverageByDate";
 import generateDatesArray from "@helpers/generateDatesArray";
 import { getMeasurementsScale } from "@controllers/patterns/helpers/getMeasurementsScale";
-import { ACTIVE_MEASUREMENTS, IActiveMeasurementsValues } from "@constants/measurements";
+import { ACTIVE_MEASUREMENTS, IActiveMeasurementsInPatternsValues } from "@constants/measurements";
 import {
 	getDailyHeartRateByDates,
 	getDailyReflections,
@@ -74,7 +74,7 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 	try {
 		const { startDate, endDate, measurements, presentation } = req.query as unknown as RequestQuery;
 		const { usersID } = req;
-		const measurementsArray = parseArrayInQuery(measurements) as IActiveMeasurementsValues[];
+		const measurementsArray = parseArrayInQuery(measurements) as IActiveMeasurementsInPatternsValues[];
 
 		if (!measurementsArray.length) {
 			responseJSON.error = "Measurements is required";
@@ -96,11 +96,11 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 		const dateArray = generateDatesArray(getStartOfDay(startDate), getStartOfDay(endDate));
 		const measurementsData = await Promise.all(
 			measurementsArray.map(async (measurementKey) => {
-				// @ts-ignore
-				const measurementsObj = await QUERIES_BY_MEASUREMENT_TYPES[measurementKey](dateArray, usersID);
-				if (!measurements) {
+				const getMeasurementsFunction = QUERIES_BY_MEASUREMENT_TYPES[measurementKey];
+				if (!getMeasurementsFunction) {
 					throw new Error(`Query for measurement ${measurementKey} not found`);
 				}
+				const measurementsObj = (await getMeasurementsFunction(dateArray, usersID!)) as any;
 				return { [measurementKey]: measurementsObj[measurementKey] };
 			})
 		);

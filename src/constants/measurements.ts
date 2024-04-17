@@ -41,12 +41,25 @@ const ACTIVE_MEASUREMENTS = {
 	DAILY_ACTIVITY_DURATION: "dailyActivityDuration",
 	DAILY_SLEEP_QUALITY: "dailySleepQuality",
 	DAILY_ACTIVITY_FEELING: "dailyActivityFeeling",
-	HEART_RATE_VARIABILITY: "heartRateVariability",
 	DAILY_CALORIES_BURNED: "dailyCaloriesBurned",
 	DAILY_EMOTION: "dailyEmotion",
 	DAILY_WEATHER: "dailyWeather",
 } as const;
 
+const MEASUREMENTS_IN_PATTERNS = {
+	SLEEP_DURATION: "sleepDuration",
+	AVG_HEART_RATE: "avgHeartRate",
+	MAX_HEART_RATE: "maxHeartRate",
+	MIN_HEART_RATE: "minHeartRate",
+	WEIGHT: "weight",
+	HEIGHT: "height",
+	DAILY_STEPS: "dailySteps",
+	DAILY_DISTANCE: "dailyDistance",
+	DAILY_ACTIVITY_DURATION: "dailyActivityDuration",
+	DAILY_SLEEP_QUALITY: "dailySleepQuality",
+	DAILY_ACTIVITY_FEELING: "dailyActivityFeeling",
+	DAILY_CALORIES_BURNED: "dailyCaloriesBurned",
+} as const;
 const MEASUREMENTS_GROUPS = {
 	DAILY_HEART_RATE: {
 		code: "dailyHeartRate",
@@ -88,10 +101,6 @@ const MEASUREMENTS_GROUPS = {
 		code: "weather",
 		measurements: [ACTIVE_MEASUREMENTS.DAILY_WEATHER],
 	},
-	HEART_RATE_VARIABILITY: {
-		code: "heartRateVariability",
-		measurements: [ACTIVE_MEASUREMENTS.HEART_RATE_VARIABILITY],
-	},
 };
 
 const MINUTES_IN_DAY = 1440;
@@ -112,7 +121,7 @@ interface IMeasurementsConfig {
 	precision?: number;
 }
 
-type IActiveMeasurementsValues = (typeof ACTIVE_MEASUREMENTS)[keyof typeof ACTIVE_MEASUREMENTS];
+type IActiveMeasurementsInPatternsValues = (typeof MEASUREMENTS_IN_PATTERNS)[keyof typeof MEASUREMENTS_IN_PATTERNS];
 
 export {
 	MEASUREMENT_SOURCES,
@@ -126,5 +135,5 @@ export {
 	MEASUREMENTS_GROUPS,
 	HealthValue,
 	IMeasurementsConfig,
-	IActiveMeasurementsValues,
+	IActiveMeasurementsInPatternsValues,
 };
