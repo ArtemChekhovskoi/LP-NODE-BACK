@@ -1,3 +1,4 @@
+import validator from "validator";
 import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
@@ -36,6 +37,7 @@ interface IMeasurementsObject {
 interface IRequestBody {
 	measurements: IMeasurementsObject;
 	utcOffset: number;
+	endDate: string;
 }
 
 interface IPreparedMeasurementsByCollectionName {
@@ -75,12 +77,18 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 	let transStartTime;
 	try {
 		const { usersID } = req;
-		const { measurements, utcOffset } = req.body as IRequestBody;
-		const now = new Date();
+		const { measurements, utcOffset, endDate } = req.body as IRequestBody;
+		const syncEndDatePrepared = new Date(endDate);
 
 		if (Object.keys(measurements).some((rawMeasurementCode) => !RAW_MEASUREMENT_CODES_ARRAY.includes(rawMeasurementCode))) {
 			responseJSON.error = "Invalid measurement code";
 			responseJSON.errorCode = "INVALID_MEASUREMENT_CODE";
+			return res.status(400).json(responseJSON);
+		}
+
+		if (!endDate && !validator.isDate(endDate)) {
+			responseJSON.error = "Invalid endDate";
+			responseJSON.errorCode = "INVALID_END_DATE";
 			return res.status(400).json(responseJSON);
 		}
 
@@ -117,10 +125,14 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 				}
 				await model.bulkWrite(preparedMeasurements, { session: mongoSession });
 			}
-			await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate: now, lastUpdated: now }, { mongoSession });
+			await Users.updateOne(
+				{ _id: new ObjectId(usersID) },
+				{ lastSyncDate: syncEndDatePrepared, lastUpdated: new Date() },
+				{ mongoSession }
+			);
 		});
 		await mongoSession.endSession();
-		responseJSON.lastSyncDate = now.toISOString();
+		responseJSON.lastSyncDate = syncEndDatePrepared.toISOString();
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);
 	} catch (e) {
