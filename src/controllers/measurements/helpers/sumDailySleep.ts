@@ -7,10 +7,14 @@ interface SleepDuration {
 }
 
 const DAILY_CUTOFF_HOURS = 20;
-const SLEEP_VALUES_TO_SUM = [1, 3, 4, 5];
+const SLEEP_VALUES_TO_SUM = [1, 2, 3, 4, 5];
 const sumDailySleep = (measurements: ISleepSample[]): { [key: string]: SleepDuration } => {
 	const resultsObj = measurements.reduce(
 		(acc, measurement) => {
+			// TODO delete this line
+			if (measurement.sourceName === "Tetiana’s iPhone") {
+				return acc;
+			}
 			const isIncludedToSum = SLEEP_VALUES_TO_SUM.includes(measurement.value);
 			if (!isIncludedToSum) {
 				return acc;
