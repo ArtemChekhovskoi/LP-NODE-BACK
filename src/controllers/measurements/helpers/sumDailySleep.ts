@@ -7,18 +7,15 @@ interface SleepDuration {
 }
 
 const DAILY_CUTOFF_HOURS = 20;
-const SLEEP_VALUES_TO_SUM = [1, 2, 3, 4, 5];
+const SLEEP_VALUES_TO_SUM = [1, 3, 4, 5];
 const sumDailySleep = (measurements: ISleepSample[]): { [key: string]: SleepDuration } => {
-	const resultsObj = measurements.reduce(
+	const sleepArraySorted = measurements
+		.filter((measurement) => SLEEP_VALUES_TO_SUM.includes(measurement.value))
+		.sort((a, b) => {
+			return dayjs(a.startDate).isBefore(dayjs(b.startDate)) ? -1 : 1;
+		});
+	const resultsObj = sleepArraySorted.reduce(
 		(acc, measurement) => {
-			// TODO delete this line
-			if (measurement.sourceName === "Tetiana’s iPhone") {
-				return acc;
-			}
-			const isIncludedToSum = SLEEP_VALUES_TO_SUM.includes(measurement.value);
-			if (!isIncludedToSum) {
-				return acc;
-			}
 			const isIncludedToNextDay =
 				dayjs(measurement.startDate).utc().hour() > DAILY_CUTOFF_HOURS ||
 				dayjs(measurement.endDate).utc().isAfter(dayjs(measurement.startDate).utc(), "day");
@@ -30,13 +27,27 @@ const sumDailySleep = (measurements: ISleepSample[]): { [key: string]: SleepDura
 			if (!acc[date]) {
 				acc[date] = {
 					duration: sleepDuration,
+					startDate: measurement.startDate,
+					endDate: measurement.endDate,
 				};
 			} else {
+				if (
+					dayjs(acc[date].endDate).isAfter(dayjs(measurement.startDate)) &&
+					dayjs(measurement.endDate).isAfter(dayjs(acc[date].endDate))
+				) {
+					const periodDuration = dayjs(measurement.endDate).diff(acc[date].endDate, "minute");
+					acc[date].duration += periodDuration;
+					acc[date].endDate = measurement.endDate;
+					acc[date].startDate = measurement.startDate;
+					return acc;
+				}
 				acc[date].duration += sleepDuration;
+				acc[date].endDate = measurement.endDate;
+				acc[date].startDate = measurement.startDate;
 			}
 			return acc;
 		},
-		{} as { [date: string]: SleepDuration }
+		{} as { [date: string]: { startDate: Date | string; endDate: Date | string; duration: number } }
 	);
 	return resultsObj;
 };
