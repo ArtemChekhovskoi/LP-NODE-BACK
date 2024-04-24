@@ -1,7 +1,6 @@
 import getStartOfDay from "@helpers/getStartOfTheDay";
 import { ISleepSample } from "@controllers/measurements/appleHealth/heplers/saveAppleHealthSleep";
 import dayjs from "dayjs";
-import { sleep } from "../../../../_mocks/alldata";
 
 interface SleepDuration {
 	duration: number;
@@ -64,7 +63,5 @@ const sumDailySleep = (measurements: ISleepSample[]): { [key: string]: SleepDura
 	);
 	return returnObjInMinutes;
 };
-
-sumDailySleep(sleep);
 
 export default sumDailySleep;
