@@ -13,6 +13,7 @@ import { UsersHeartRate } from "@models/users_heart_rate";
 import filterMeasurementsByPeriod from "@controllers/measurements/helpers/filterMeasurementsByPeriod";
 import { ActivitiesConfig } from "@models/activities_config";
 import calculateMeasurementPercentages from "@controllers/measurements/helpers/calculateMeasurementPercentages";
+import calculateSleepPercentages from "@helpers/calculateSleepPercentages";
 
 dayjs.extend(isBetween);
 
@@ -20,7 +21,7 @@ interface RequestQuery {
 	date: string;
 }
 
-interface SleepValue {
+export interface SleepValue {
 	value: number;
 	startDate: Date;
 	endDate: Date;
@@ -108,11 +109,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			}
 		}
 
-		const sleepWithPercentages = sleepBySourceName
-			.map((sleep) => {
-				return calculateMeasurementPercentages(sleep, startOfTheDay);
-			})
-			.filter((sleep) => sleep);
+		const sleepWithPercentages = calculateSleepPercentages(sleepBySourceName, startOfTheDay);
 		const activityWithPercentages = usersActivity.map((activity) => {
 			const { startPercentage, endPercentage } = calculateMeasurementPercentages(activity, startOfTheDay);
 			const activityConfig = activitiesConfig.find((config) => config.code === activity.activityType);
@@ -149,7 +146,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 
 		// Insert heart rate empty values for the missing half-hour periods
 		for (const heartRate of heartRateWithScales.measurements) {
-			while (!dayjs(heartRate?.startDate).isBetween(dayTime, dayTime.add(30, "minutes"))) {
+			while (!dayjs(heartRate?.startDate).add(1, "minutes").isBetween(dayTime, dayTime.add(30, "minutes"))) {
 				heartRateWithZeroValues.push({
 					value: 0,
 					startDate: dayTime.toDate(),
