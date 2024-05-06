@@ -19,9 +19,16 @@ const postSaveEveningReflection = async (req: ExtendedRequest, res: Response) =>
 		const { usersID } = req;
 
 		const startOfTheDay = getStartOfDay(new Date());
-
 		mongoSession = await mongoose.startSession();
 		await mongoSession.withTransaction(async () => {
+			if (!emotionsID && !activityFeeling && !!notes) {
+				await UsersDailyReflections.updateOne(
+					{ usersID: new ObjectId(usersID), date: startOfTheDay },
+					{ notes, isEveningReflectionDone: false },
+					{ session: mongoSession, upsert: true }
+				);
+				return;
+			}
 			await UsersDailyReflections.updateOne(
 				{ usersID: new ObjectId(usersID), date: startOfTheDay },
 				{ isEveningReflectionDone: true, notes, activityFeeling, emotionsID },

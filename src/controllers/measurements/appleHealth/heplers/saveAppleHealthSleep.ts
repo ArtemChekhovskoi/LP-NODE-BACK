@@ -18,7 +18,6 @@ const saveAppleHealthSleep = (sleep: ISleepSample[], usersID: string, utcOffset:
 		throw new Error("No sleep data");
 	}
 
-	console.log("SLEEP FROM APPLE HEALTH -----------", JSON.stringify(sleep));
 	const sleepWithCorrectDates = sleep.map((measurement) => {
 		return {
 			...measurement,
@@ -26,7 +25,6 @@ const saveAppleHealthSleep = (sleep: ISleepSample[], usersID: string, utcOffset:
 			endDate: dayjs(measurement.endDate).add(utcOffset, "minute").toDate(),
 		};
 	});
-	console.log("SLEEP WITH CORRECT DATES -----------", JSON.stringify(sleepWithCorrectDates));
 
 	const sleepDuration = sumDailySleep(sleepWithCorrectDates);
 	const sleepDurationBulkWrite = Object.entries(sleepDuration).map(([date, measurement]) => {
@@ -57,9 +55,9 @@ const saveAppleHealthSleep = (sleep: ISleepSample[], usersID: string, utcOffset:
 					startDate: new Date(measurement.startDate),
 					sourceName: measurement?.sourceName,
 					usersID: new ObjectId(usersID),
+					value: measurement.value,
 				},
 				update: {
-					value: measurement.value,
 					endDate: new Date(measurement.endDate),
 					lastUpdated: new Date(),
 				},
