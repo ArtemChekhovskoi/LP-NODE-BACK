@@ -22,7 +22,7 @@ export interface IActivitySample {
 interface IActivityTotals {
 	[date: string]: {
 		dailyActiveEnergyBurned: number;
-		dailyActivityTimeMinutes: number;
+		dailyActivityTimeHours: number;
 	};
 }
 const saveAppleHealthActivity = (activity: IActivitySample[], usersID: string, utcOffset: number) => {
@@ -39,15 +39,15 @@ const saveAppleHealthActivity = (activity: IActivitySample[], usersID: string, u
 	});
 	const activityTotals = activityWithCorrectDates.reduce((acc, curr) => {
 		const date = getStartOfDay(curr.startDate).toISOString();
-		const periodActivityMinutes = curr.duration / 60;
+		const periodActivityHours = +(curr.duration / 3600).toFixed(2);
 		if (!acc[date]) {
 			acc[date] = {
 				dailyActiveEnergyBurned: curr.totalEnergyBurned.quantity,
-				dailyActivityTimeMinutes: periodActivityMinutes,
+				dailyActivityTimeHours: periodActivityHours,
 			};
 		} else {
 			acc[date].dailyActiveEnergyBurned += curr.totalEnergyBurned.quantity;
-			acc[date].dailyActivityTimeMinutes += periodActivityMinutes;
+			acc[date].dailyActivityTimeHours += periodActivityHours;
 		}
 		return acc;
 	}, {} as IActivityTotals);
@@ -63,7 +63,7 @@ const saveAppleHealthActivity = (activity: IActivitySample[], usersID: string, u
 						},
 						update: {
 							$inc: {
-								value: measurement.dailyActivityTimeMinutes,
+								value: measurement.dailyActivityTimeHours,
 							},
 							$set: {
 								lastUpdated: new Date(),

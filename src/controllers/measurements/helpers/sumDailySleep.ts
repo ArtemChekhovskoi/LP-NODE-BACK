@@ -52,16 +52,16 @@ const sumDailySleep = (measurements: ISleepSample[]): { [key: string]: SleepDura
 		},
 		{} as { [date: string]: { startDate: Date | string; endDate: Date | string; duration: number } }
 	);
-	const returnObjInMinutes = Object.entries(resultsObj).reduce(
+	const returnObjInHours = Object.entries(resultsObj).reduce(
 		(acc, [date, measurement]) => {
 			acc[date] = {
-				duration: Math.round(measurement.duration / 60),
+				duration: +(measurement.duration / 3600).toFixed(2),
 			};
 			return acc;
 		},
 		{} as { [date: string]: SleepDuration }
 	);
-	return returnObjInMinutes;
+	return returnObjInHours;
 };
 
 export default sumDailySleep;

@@ -79,8 +79,10 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		const { usersID } = req;
 		const { measurements, utcOffset, endDate } = req.body as IRequestBody;
 		const syncEndDatePrepared = new Date(endDate);
-
-		if (Object.keys(measurements).some((rawMeasurementCode) => !RAW_MEASUREMENT_CODES_ARRAY.includes(rawMeasurementCode))) {
+		if (
+			!measurements ||
+			Object.keys(measurements).some((rawMeasurementCode) => !RAW_MEASUREMENT_CODES_ARRAY.includes(rawMeasurementCode))
+		) {
 			responseJSON.error = "Invalid measurement code";
 			responseJSON.errorCode = "INVALID_MEASUREMENT_CODE";
 			return res.status(400).json(responseJSON);

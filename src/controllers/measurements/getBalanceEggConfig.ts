@@ -2,7 +2,7 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 
-import { MINUTES_IN_DAY, ACTIVE_MEASUREMENTS } from "@constants/measurements";
+import { HOURS_IN_DAY, ACTIVE_MEASUREMENTS } from "@constants/measurements";
 import generateDatesArray from "@helpers/generateDatesArray";
 import { decimalAdjust } from "@helpers/decimalAdjust";
 import getStartOfDay from "@helpers/getStartOfTheDay";
@@ -101,7 +101,7 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 				);
 				const sleepTime = sleepDurationByDate?.value || 0;
 				const activityTime = activityDurationByDate?.value || 0;
-				const inactiveTime = MINUTES_IN_DAY - sleepTime - activityTime;
+				const inactiveTime = HOURS_IN_DAY - sleepTime - activityTime;
 
 				return {
 					date,

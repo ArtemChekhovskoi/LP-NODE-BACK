@@ -56,7 +56,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 		const [heartRateConfig, usersHeartRate, usersDailySleep, usersActivity, activitiesConfig] = await Promise.all([
 			Measurements.findOne(
 				{ code: ACTIVE_MEASUREMENTS.AVG_HEART_RATE },
-				{ code: true, name: true, unit: true, precision: true, _id: true }
+				{ code: true, name: true, unit: true, precision: true, displayColor: true, _id: true }
 			).lean(),
 			UsersHeartRate.find(
 				{ usersID, startDate: { $gte: startOfTheDay }, endDate: { $lte: endOfTheDay } },
@@ -125,6 +125,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			{
 				unit: heartRateConfig.unit,
 				precision: heartRateConfig.precision,
+				displayColor: heartRateConfig.displayColor,
 				code: heartRateConfig.code,
 				name: heartRateConfig.name,
 				measurements: everyHalfAndHourHeartRate,

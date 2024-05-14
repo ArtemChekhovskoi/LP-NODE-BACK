@@ -103,7 +103,7 @@ const MEASUREMENTS_GROUPS = {
 	},
 };
 
-const MINUTES_IN_DAY = 1440;
+const HOURS_IN_DAY = 24;
 
 interface HealthValue {
 	id?: string;
@@ -119,6 +119,10 @@ interface IMeasurementsConfig {
 	unit?: string;
 	name: string;
 	precision?: number;
+	displayColor?: {
+		primary?: string;
+		secondary?: string;
+	};
 }
 
 type IActiveMeasurementsInPatternsValues = (typeof MEASUREMENTS_IN_PATTERNS)[keyof typeof MEASUREMENTS_IN_PATTERNS];
@@ -128,7 +132,7 @@ export {
 	SLEEP_VALUES,
 	IN_SLEEP_VALUES,
 	IN_SLEEP_VALUES_ARRAY,
-	MINUTES_IN_DAY,
+	HOURS_IN_DAY,
 	RAW_MEASUREMENT_CODES,
 	ACTIVE_MEASUREMENTS,
 	RAW_MEASUREMENT_CODES_ARRAY,

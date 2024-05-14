@@ -10,6 +10,10 @@ interface IMeasurementConfig {
 	unit?: string;
 	precision?: number;
 	code?: string;
+	displayColor?: {
+		primary?: string;
+		secondary?: string;
+	};
 }
 
 interface IEmotionConfig {
@@ -38,7 +42,7 @@ const getGlobalConfig = async (req: ExtendedRequest, res: Response) => {
 		const [measurementsConfig, emotionsConfig] = await Promise.all([
 			await Measurements.find(
 				{ active: true },
-				{ code: true, unit: true, name: true, shortName: true, precision: true, _id: false }
+				{ code: true, unit: true, name: true, shortName: true, precision: true, displayColor: true, _id: false }
 			).lean(),
 			await EmotionsConfig.find(
 				{ active: true },

@@ -15,9 +15,19 @@ const measurements = new Schema({
 	},
 	unit: {
 		type: String,
+		required: true,
 	},
 	precision: {
 		type: Number,
+		required: true,
+	},
+	displayColor: {
+		primary: {
+			type: String,
+		},
+		secondary: {
+			type: String,
+		},
 	},
 	active: {
 		type: Boolean,
