@@ -12,9 +12,12 @@ const reduceMeasurementBySourceName = (measurements: HealthValueWithDate[]): Hea
 		},
 		{} as { [key: string]: HealthValueWithDate[] }
 	);
-	const measurementsWithBiggestLength = Object.values(measurementsReducedBySourceName).reduce((acc, curr) =>
-		acc.length > curr.length ? acc : curr
-	);
+	console.log(JSON.stringify(measurementsReducedBySourceName));
+	const measurementsWithBiggestLength = Object.values(measurementsReducedBySourceName).reduce((acc, curr) => {
+		console.log("acc.length", acc.length, "curr.length", curr.length);
+		return acc.length > curr.length ? acc : curr;
+	}, [] as HealthValueWithDate[]);
+	console.log(JSON.stringify(measurementsWithBiggestLength));
 	return measurementsWithBiggestLength;
 };
 
