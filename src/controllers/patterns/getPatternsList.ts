@@ -109,7 +109,28 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 		if (presentation !== DATA_PRESENTATION.DAY) {
 			preparedData = calculateAverageByDate(preparedData, presentation);
 		}
-		const dataWithScales = getMeasurementsScale(preparedData);
+		let dataWithScales = getMeasurementsScale(preparedData);
+		if (dataWithScales.every((item) => item.unit === dataWithScales[0].unit)) {
+			const itemWithMaxScaleData = {
+				maxScaleValue: 0,
+				index: 0,
+			};
+			for (let ind = 0; ind < dataWithScales.length; ind += 1) {
+				if (dataWithScales[ind].maxScaleValue > itemWithMaxScaleData.maxScaleValue) {
+					itemWithMaxScaleData.maxScaleValue = dataWithScales[ind].maxScaleValue;
+					itemWithMaxScaleData.index = ind;
+				}
+			}
+			dataWithScales = dataWithScales.map((item) => {
+				return {
+					...item,
+					scale: dataWithScales[itemWithMaxScaleData.index].scale,
+					maxScaleValue: dataWithScales[itemWithMaxScaleData.index].maxScaleValue,
+					minScaleValue: dataWithScales[itemWithMaxScaleData.index].minScaleValue,
+					maxMultiplier: dataWithScales[itemWithMaxScaleData.index].maxMultiplier,
+				};
+			});
+		}
 		responseJSON.success = true;
 		responseJSON.data = dataWithScales;
 		return res.status(200).json(responseJSON);

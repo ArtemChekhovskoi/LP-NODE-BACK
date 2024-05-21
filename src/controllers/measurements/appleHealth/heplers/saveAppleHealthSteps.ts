@@ -4,6 +4,7 @@ import { UsersSteps } from "@models/users_steps";
 import sumMeasurementsByDay from "@controllers/measurements/helpers/sumMeasurementsByDay";
 import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
 import dayjs from "dayjs";
+import reduceMeasurementBySourceName from "@helpers/reduceMeasurementBySourceName";
 
 const { ObjectId } = Types;
 
@@ -21,7 +22,9 @@ const saveAppleHealthSteps = (steps: HealthValue[], usersID: string, utcOffset: 
 	});
 
 	const stepsByDate = sumMeasurementsByDay(stepsWithCorrectDates);
-	const dailyStepsBulkWrite = stepsByDate.map((measurement) => {
+	const stepsWithBiggestLength = reduceMeasurementBySourceName(stepsByDate);
+
+	const dailyStepsBulkWrite = stepsWithBiggestLength.map((measurement) => {
 		return {
 			updateOne: {
 				filter: {

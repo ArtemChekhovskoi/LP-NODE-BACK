@@ -1,7 +1,7 @@
 import { HealthValue } from "@constants/measurements";
 import getStartOfDay from "@helpers/getStartOfTheDay";
 
-interface HealthValueWithDate extends HealthValue {
+export interface HealthValueWithDate extends HealthValue {
 	date: string;
 }
 const sumMeasurementsByDay = (measurements: HealthValue[]): HealthValueWithDate[] => {

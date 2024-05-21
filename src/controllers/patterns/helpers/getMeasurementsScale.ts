@@ -6,6 +6,10 @@ interface GetMeasurementsScaleParams {
 	unit?: string;
 	code: string;
 	precision?: number;
+	valuesRange?: {
+		min: number;
+		max: number;
+	};
 	measurements: Array<{
 		value: number;
 		maxValue?: number;
@@ -35,6 +39,20 @@ const getMeasurementsScale = (measurementsInfo: GetMeasurementsScaleParams[], fi
 	};
 
 	const measurementsValues = measurementsInfo.map((measurement) => {
+		if (measurement?.valuesRange) {
+			const { min, max } = measurement.valuesRange;
+			const scale = Array.from({ length: max - min + 1 })
+				.map((_, index) => min + index)
+				.reverse();
+			return {
+				...measurement,
+				scale,
+				minScaleValue: min,
+				maxScaleValue: max,
+				maxMultiplier: MAX_VALUE_MULTIPLIER,
+			};
+		}
+
 		const scaleValues = generateScale(measurement.measurements.map((item) => item[fieldToMakeScaleFrom])).reverse();
 		const minScaleValue = scaleValues[scaleValues.length - 1];
 		const maxScaleValue = scaleValues[0];

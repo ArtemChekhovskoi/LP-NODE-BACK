@@ -4,6 +4,7 @@ import { UsersWalkingRunningDistance } from "@models/users_walking_running_dista
 import sumMeasurementsByDay from "@controllers/measurements/helpers/sumMeasurementsByDay";
 import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
 import dayjs from "dayjs";
+import reduceMeasurementBySourceName from "@helpers/reduceMeasurementBySourceName";
 
 const { ObjectId } = Types;
 
@@ -21,7 +22,9 @@ const saveAppleHealthWalkingRunningDistance = (walkingRunningDistance: HealthVal
 	});
 
 	const dailyDistanceByDay = sumMeasurementsByDay(walkingRunningDistanceWithCorrectDates);
-	const dailyDistanceBulkWrite = dailyDistanceByDay.map((measurement) => {
+	const distanceWithBiggestLength = reduceMeasurementBySourceName(dailyDistanceByDay);
+
+	const dailyDistanceBulkWrite = distanceWithBiggestLength.map((measurement) => {
 		return {
 			updateOne: {
 				filter: {
@@ -31,7 +34,7 @@ const saveAppleHealthWalkingRunningDistance = (walkingRunningDistance: HealthVal
 				},
 				update: {
 					$inc: {
-						value: measurement.value,
+						value: +(measurement.value / 1000).toFixed(2),
 					},
 					$set: {
 						lastUpdated: new Date(),
