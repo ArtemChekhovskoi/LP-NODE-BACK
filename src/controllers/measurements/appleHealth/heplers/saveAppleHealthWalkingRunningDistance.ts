@@ -21,10 +21,10 @@ const saveAppleHealthWalkingRunningDistance = (walkingRunningDistance: HealthVal
 		};
 	});
 
-	const dailyDistanceByDay = sumMeasurementsByDay(walkingRunningDistanceWithCorrectDates);
-	const distanceWithBiggestLength = reduceMeasurementBySourceName(dailyDistanceByDay);
+	const distanceWithBiggestLength = reduceMeasurementBySourceName(walkingRunningDistanceWithCorrectDates);
+	const dailyDistanceByDay = sumMeasurementsByDay(distanceWithBiggestLength);
 
-	const dailyDistanceBulkWrite = distanceWithBiggestLength.map((measurement) => {
+	const dailyDistanceBulkWrite = dailyDistanceByDay.map((measurement) => {
 		return {
 			updateOne: {
 				filter: {

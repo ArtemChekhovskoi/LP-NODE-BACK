@@ -21,10 +21,10 @@ const saveAppleHealthSteps = (steps: HealthValue[], usersID: string, utcOffset: 
 		};
 	});
 
-	const stepsByDate = sumMeasurementsByDay(stepsWithCorrectDates);
-	const stepsWithBiggestLength = reduceMeasurementBySourceName(stepsByDate);
+	const stepsWithBiggestLength = reduceMeasurementBySourceName(stepsWithCorrectDates);
+	const stepsByDate = sumMeasurementsByDay(stepsWithBiggestLength);
 
-	const dailyStepsBulkWrite = stepsWithBiggestLength.map((measurement) => {
+	const dailyStepsBulkWrite = stepsByDate.map((measurement) => {
 		return {
 			updateOne: {
 				filter: {
