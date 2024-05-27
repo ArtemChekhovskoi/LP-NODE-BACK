@@ -39,6 +39,7 @@ export interface IPatternsListResponseData {
 
 export interface IPatternsListResponseWithScales extends IPatternsListResponseData {
 	scale: number[];
+	avgValue: number;
 	minScaleValue: number;
 	maxScaleValue: number;
 	maxMultiplier: number;
@@ -105,7 +106,6 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 			})
 		);
 		let preparedData = prepareMeasurementsForReturn(measurementsData, reducedMeasurementsConfig);
-
 		if (presentation !== DATA_PRESENTATION.DAY) {
 			preparedData = calculateAverageByDate(preparedData, presentation);
 		}
@@ -133,6 +133,7 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 		}
 		responseJSON.success = true;
 		responseJSON.data = dataWithScales;
+
 		return res.status(200).json(responseJSON);
 	} catch (e) {
 		logger.error(`Error in controllers/getPatternsList: ${e}`);

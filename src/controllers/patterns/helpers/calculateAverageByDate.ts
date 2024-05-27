@@ -17,7 +17,8 @@ const calculateAverageByDate = (data: IPatternsListResponseData[], presentation:
 	}
 	const calculateAverage = (measurements: number[]) => {
 		const totalValue = measurements.reduce((sum, measurement) => sum + measurement, 0);
-		return measurements.length > 0 ? totalValue / measurements.length : 0;
+		const notNullMeasurementsAmount = measurements.filter((measurement) => measurement !== 0).length;
+		return measurements.length > 0 ? totalValue / notNullMeasurementsAmount : 0;
 	};
 
 	// Create a map to store averages by month
@@ -61,7 +62,6 @@ const calculateAverageByDate = (data: IPatternsListResponseData[], presentation:
 			value: calculateAverage(item.measurements[measurementType]),
 		})),
 	}));
-
 	// Create the final structure
 	return data.map((item) => ({
 		...item,

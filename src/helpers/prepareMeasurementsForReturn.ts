@@ -2,7 +2,9 @@ import { IMeasurementsConfig } from "@constants/measurements";
 
 type ReducedMeasurementsConfig = { [key: string]: IMeasurementsConfig };
 type MeasurementObj = { [key: string]: { value: number; date: Date }[] };
-type TPrepareMeasurementsToReturnResponse = IMeasurementsConfig & { measurements: { value: number; date: Date }[] };
+export type TPrepareMeasurementsToReturnResponse = IMeasurementsConfig & {
+	measurements: { value: number; maxValue?: number; minValue?: number; date?: Date; startDate?: Date }[];
+};
 
 const prepareMeasurementsForReturn = (
 	measurementsObj: MeasurementObj[],

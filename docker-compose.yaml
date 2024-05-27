@@ -1,22 +1,5 @@
 version: '3'
 services:
-  express:
-    image: lp-back
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    environment:
-      - NODE_ENV=local
-    ports:
-      - "3000:3000"
-    links:
-      - mongo1
-      - mongo2
-      - mongo3
-    depends_on:
-      - mongo1
-      - mongo2
-      - mongo3
   mongo1:
     image: mongo
     container_name: mongo1
@@ -46,3 +29,9 @@ services:
       entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
       volumes:
         - ./docker/volume/mongodb3:/data/db
+  redis:
+    image: redis/redis-stack
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always

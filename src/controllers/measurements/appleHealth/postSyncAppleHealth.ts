@@ -134,6 +134,7 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 			);
 		});
 		await mongoSession.endSession();
+		// await sendHealthSyncStatus({ usersID, syncPercentage: 100, statusCode: 3 });
 		responseJSON.lastSyncDate = syncEndDatePrepared.toISOString();
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);

@@ -71,5 +71,10 @@
   "weather": {
     "apiKey": "17b99e1cb5db41df95e181556230211",
     "url": "https://api.weatherapi.com/v1"
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "password": ""
   }
 }

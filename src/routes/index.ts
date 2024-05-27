@@ -6,6 +6,7 @@ import userRouter from "@routes/user";
 import measurementsRouter from "@routes/measurements";
 import patterns from "@routes/patterns";
 import main from "@routes/main";
+import authRouter from "@routes/auth";
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use((req, res, next) => {
 });
 router.use(checkAuth);
 
+router.use("/auth", authRouter);
 router.use("/user", userRouter);
 router.use("/measurements", measurementsRouter);
 router.use("/notifications", notifications);

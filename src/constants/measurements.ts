@@ -119,6 +119,10 @@ interface IMeasurementsConfig {
 	unit?: string;
 	name: string;
 	precision?: number;
+	valuesRange?: {
+		min: number;
+		max: number;
+	};
 	displayColor?: {
 		primary?: string;
 		secondary?: string;

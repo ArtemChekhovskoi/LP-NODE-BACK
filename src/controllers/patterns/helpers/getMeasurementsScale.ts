@@ -1,44 +1,51 @@
+import { TPrepareMeasurementsToReturnResponse } from "@helpers/prepareMeasurementsForReturn";
+import { decimalAdjust } from "@helpers/decimalAdjust";
+
 const MAX_VALUE_MULTIPLIER = 1.2;
 
 type TFieldToMakeScaleFrom = "value" | "maxValue" | "minValue";
-interface GetMeasurementsScaleParams {
-	name: string;
-	unit?: string;
-	code: string;
-	precision?: number;
-	valuesRange?: {
-		min: number;
-		max: number;
-	};
-	measurements: Array<{
-		value: number;
-		maxValue?: number;
-		minValue?: number;
-		date?: Date;
-		startDate?: Date;
-	}>;
-}
-const getMeasurementsScale = (measurementsInfo: GetMeasurementsScaleParams[], fieldToMakeScaleFrom: TFieldToMakeScaleFrom = "value") => {
-	const generateScale = (values: (number | undefined)[]) => {
-		const filteredValues = values.filter((value) => value !== undefined) as number[];
-		const maxValue = Math.max(...filteredValues) * MAX_VALUE_MULTIPLIER;
-		const minValue = Math.min(...filteredValues);
-		const scaleValues = [];
-		if (maxValue > 0) {
-			const step = maxValue / 5;
-			for (let i = 0; i < 6; i += 1) {
-				scaleValues.push(Math.round(step * i));
-			}
-		} else {
-			const step = minValue / 5;
-			for (let i = 0; i < 6; i += 1) {
-				scaleValues.push(Math.round(step * i));
-			}
-		}
-		return scaleValues;
-	};
 
+interface GetMeasurementsScaleResponse extends TPrepareMeasurementsToReturnResponse {
+	scale: number[];
+	avgValue: number;
+	minScaleValue: number;
+	maxScaleValue: number;
+	maxMultiplier: number;
+}
+
+const generateScale = (values: (number | undefined)[], precision: number | undefined) => {
+	const filteredValues = values.filter((value) => value !== undefined) as number[];
+
+	const maxValue = Math.max(...filteredValues) * MAX_VALUE_MULTIPLIER;
+	const minValue = Math.min(...filteredValues);
+	const scaleValues = [];
+
+	if (maxValue > 0) {
+		const step = maxValue / 5;
+		for (let i = 0; i < 6; i += 1) {
+			scaleValues.push(+(step * i).toFixed(precision || 0));
+		}
+	} else {
+		const step = minValue / 5;
+		for (let i = 0; i < 6; i += 1) {
+			scaleValues.push(+(step * i).toFixed(precision || 0));
+		}
+	}
+	return scaleValues;
+};
+
+const getAverageValue = (measurements: (number | undefined)[], precision: number | undefined) => {
+	const filteredValuesWithoutZero = measurements.filter((value) => value !== 0 && value !== undefined) as number[];
+	const totalValue = filteredValuesWithoutZero.reduce((sum, measurement) => sum + measurement, 0);
+	const notNullMeasurementsAmount = filteredValuesWithoutZero.length;
+	return decimalAdjust(notNullMeasurementsAmount > 0 ? totalValue / notNullMeasurementsAmount : 0, precision);
+};
+const getMeasurementsScale = (
+	measurementsInfo: TPrepareMeasurementsToReturnResponse[],
+	fieldToMakeScaleFrom: TFieldToMakeScaleFrom = "value"
+): GetMeasurementsScaleResponse[] => {
 	const measurementsValues = measurementsInfo.map((measurement) => {
+		const preparedMeasurements = measurement.measurements.map((item) => item[fieldToMakeScaleFrom]);
 		if (measurement?.valuesRange) {
 			const { min, max } = measurement.valuesRange;
 			const scale = Array.from({ length: max - min + 1 })
@@ -47,20 +54,22 @@ const getMeasurementsScale = (measurementsInfo: GetMeasurementsScaleParams[], fi
 			return {
 				...measurement,
 				scale,
+				avgValue: getAverageValue(preparedMeasurements, measurement.precision),
 				minScaleValue: min,
 				maxScaleValue: max,
 				maxMultiplier: MAX_VALUE_MULTIPLIER,
 			};
 		}
 
-		const scaleValues = generateScale(measurement.measurements.map((item) => item[fieldToMakeScaleFrom])).reverse();
-		const minScaleValue = scaleValues[scaleValues.length - 1];
-		const maxScaleValue = scaleValues[0];
+		const scaleValues = generateScale(preparedMeasurements, measurement.precision);
+		const minValue = Math.min(...scaleValues);
+		const maxValue = Math.max(...scaleValues);
 		return {
 			...measurement,
-			scale: scaleValues,
-			minScaleValue,
-			maxScaleValue,
+			avgValue: getAverageValue(preparedMeasurements, measurement.precision),
+			scale: scaleValues.reverse(),
+			minScaleValue: minValue,
+			maxScaleValue: maxValue,
 			maxMultiplier: MAX_VALUE_MULTIPLIER,
 		};
 	});
