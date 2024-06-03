@@ -47,13 +47,11 @@ const getMeasurementsScale = (
 	const measurementsValues = measurementsInfo.map((measurement) => {
 		const preparedMeasurements = measurement.measurements.map((item) => item[fieldToMakeScaleFrom]);
 		if (measurement?.valuesRange) {
-			const { min, max } = measurement.valuesRange;
-			const scale = Array.from({ length: max - min + 1 })
-				.map((_, index) => min + index)
-				.reverse();
+			const { min, max, scale } = measurement.valuesRange;
+
 			return {
 				...measurement,
-				scale,
+				scale: scale.reverse(),
 				avgValue: getAverageValue(preparedMeasurements, measurement.precision),
 				minScaleValue: min,
 				maxScaleValue: max,

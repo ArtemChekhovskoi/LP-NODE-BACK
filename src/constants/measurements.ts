@@ -122,6 +122,7 @@ interface IMeasurementsConfig {
 	valuesRange?: {
 		min: number;
 		max: number;
+		scale: number[];
 	};
 	displayColor?: {
 		primary?: string;
