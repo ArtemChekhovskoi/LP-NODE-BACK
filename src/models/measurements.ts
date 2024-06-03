@@ -32,12 +32,15 @@ const measurements = new Schema({
 	valuesRange: {
 		min: {
 			type: Number,
+			required: true,
 		},
 		max: {
 			type: Number,
+			required: true,
 		},
 		scale: {
 			type: [Number],
+			required: true,
 		},
 	},
 	active: {
