@@ -48,7 +48,6 @@ const getMeasurementsScale = (
 		const preparedMeasurements = measurement.measurements.map((item) => item[fieldToMakeScaleFrom]);
 		if (measurement?.valuesRange) {
 			const { min, max, scale } = measurement.valuesRange;
-
 			return {
 				...measurement,
 				scale: scale.reverse(),
