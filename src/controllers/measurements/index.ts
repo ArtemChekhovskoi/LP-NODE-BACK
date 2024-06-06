@@ -5,6 +5,7 @@ import postUpdateDailyWeather from "@controllers/measurements/postUpdateDailyWea
 import postSaveMorningReflection from "@controllers/measurements/saveMorningReflection";
 import postSaveEveningReflection from "@controllers/measurements/saveEveningReflection";
 import getDailyHeartRateDependencies from "@controllers/measurements/getDailyHeartRateDependencies";
+import postSaveDailyNote from "@controllers/measurements/saveDailyNote";
 import appleHealth from "@controllers/measurements/appleHealth";
 
 const measurements = {
@@ -14,6 +15,7 @@ const measurements = {
 	postUpdateDailyWeather,
 	postSaveMorningReflection,
 	postSaveEveningReflection,
+	postSaveDailyNote,
 	getDailyHeartRateDependencies,
 	appleHealth,
 };

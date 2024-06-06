@@ -30,10 +30,6 @@ const usersDailyReflections = new Schema(
 			type: Number,
 			required: false,
 		},
-		notes: {
-			type: String,
-			required: false,
-		},
 		emotionsID: {
 			type: Schema.Types.ObjectId,
 			required: false,

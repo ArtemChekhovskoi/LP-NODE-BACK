@@ -37,7 +37,6 @@ const getProfile = async (req: ExtendedRequest, res: Response) => {
 				{
 					isMorningReflectionDone: true,
 					isEveningReflectionDone: true,
-					notes: true,
 				}
 			).lean(),
 		]);
@@ -52,7 +51,6 @@ const getProfile = async (req: ExtendedRequest, res: Response) => {
 			...userProfile,
 			isMorningReflectionDone: usersReflection?.isMorningReflectionDone || false,
 			isEveningReflectionDone: usersReflection?.isEveningReflectionDone || false,
-			dailyNotes: usersReflection?.notes || "",
 		};
 		responseJSON.success = true;
 		return res.json(responseJSON);

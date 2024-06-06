@@ -20,7 +20,7 @@ router.route("/daily-heart-rate-dependencies").get(controllers.measurements.getD
 router.route("/update-daily-weather").post(validateDTO(updateDailyWeatherSchema), controllers.measurements.postUpdateDailyWeather);
 router.route("/save-morning-reflection").post(validateDTO(saveMorningReflectionSchema), controllers.measurements.postSaveMorningReflection);
 router.route("/save-evening-reflection").post(validateDTO(saveEveningReflectionSchema), controllers.measurements.postSaveEveningReflection);
-
+router.route("/save-daily-note").post(controllers.measurements.postSaveDailyNote);
 // Apple Health
 router.use("/apple-health", appleHealthRouter);
 export default router;

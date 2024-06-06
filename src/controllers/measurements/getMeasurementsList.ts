@@ -8,6 +8,7 @@ import { IResponseWithData } from "@controllers/controllers.interface";
 import { EmotionsConfig } from "@models/emotions_config";
 import { UsersDailyWeather } from "@models/users_daily_weather";
 import { UsersDailyReflections } from "@models/users_daily_reflections";
+import { UsersNotes } from "@models/users_notes";
 
 interface RequestQuery {
 	startDate: string;
@@ -34,8 +35,9 @@ const getList = async (req: ExtendedRequest, res: Response) => {
 			date: { $gte: new Date(startDate), $lte: new Date(endDate) },
 		};
 
-		const [usersReflections, usersDailyWeather, emotionsConfig] = await Promise.all([
-			UsersDailyReflections.find(filter, { notes: true, emotionsID: true, date: true, _id: false }).lean(),
+		const [usersReflections, usersNotes, usersDailyWeather, emotionsConfig] = await Promise.all([
+			UsersDailyReflections.find(filter, { emotionsID: true, date: true, _id: false }).lean(),
+			UsersNotes.find(filter, { note: true, date: true, _id: false }).lean(),
 			UsersDailyWeather.find(filter, {
 				icon: true,
 				date: true,
@@ -59,7 +61,8 @@ const getList = async (req: ExtendedRequest, res: Response) => {
 					(config) => reflectionByDate.emotionsID && config._id.toString() === reflectionByDate.emotionsID.toString()
 				);
 			}
-			dateObject.notes = reflectionByDate?.notes || "";
+			const noteByDate = usersNotes.find((item) => item.date.toISOString() === date.toISOString());
+			dateObject.notes = noteByDate?.note || "";
 			const usersDailyWeatherByDate = usersDailyWeather.find((item) => item.date.toISOString() === date.toISOString());
 
 			if (usersDailyWeatherByDate) {
