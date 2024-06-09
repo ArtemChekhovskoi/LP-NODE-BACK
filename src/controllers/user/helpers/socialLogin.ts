@@ -2,6 +2,11 @@ import { Users } from "@models/users";
 import { Request, Response } from "express";
 import { IGoogleProfile, SocialType } from "@controllers/user/postGoogleSignin";
 import createSha512Hash from "@helpers/createSha512Hash";
+import dayjs from "dayjs";
+import { Notifications } from "@models/notifications";
+import { NOTIFICATIONS_TYPES } from "@constants/notifications";
+import { UsersNotifications } from "@models/users_notifications";
+import { ClientSession } from "mongoose";
 import { generateAuthToken } from "./generateAuthToken";
 
 interface ISocialLoginReturn {
@@ -15,7 +20,8 @@ const socialLogin = async (
 	req: Request,
 	res: Response,
 	profile: IGoogleProfile,
-	socialFieldName: SocialType
+	socialFieldName: SocialType,
+	mongoSession: ClientSession | null
 ): Promise<ISocialLoginReturn> => {
 	const clientData = { userAgent: req.headers["user-agent"] };
 	const hashedProfileId = createSha512Hash(`${profile.id}`) || "";
@@ -36,7 +42,7 @@ const socialLogin = async (
 		};
 	}
 
-	// Opt: User not exists, so creating new user
+	// Create new user
 	const newUser = new Users({
 		socialAccounts: {
 			[socialFieldName]: hashedProfileId,
@@ -45,9 +51,24 @@ const socialLogin = async (
 		lastUpdated: new Date(),
 		active: true,
 		registrationStep: "gender",
-		lastSyncDate: new Date(),
+		lastSyncDate: dayjs().subtract(1, "month").toDate(),
 	});
-	const savedNewUser = await newUser.save();
+	const uploadDataNotification = await Notifications.findOne(
+		{ type: NOTIFICATIONS_TYPES.ONBOARDING_UPLOAD_DATA, active: true },
+		{ _id: true }
+	);
+	if (!uploadDataNotification) {
+		throw new Error("User onboarding notification not found");
+	}
+
+	const newUserUploadDataNotification = new UsersNotifications({
+		usersID: newUser._id,
+		notificationsID: uploadDataNotification?._id,
+		isClosed: false,
+		isClicked: false,
+	});
+	const savedNewUser = await newUser.save({ session: mongoSession });
+	await newUserUploadDataNotification.save({ session: mongoSession });
 
 	const tokens = await generateAuthToken(socialFieldName, clientData, newUser._id);
 

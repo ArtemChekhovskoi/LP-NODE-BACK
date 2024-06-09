@@ -47,6 +47,8 @@ const getUserNotifications = async (req: ExtendedRequest, res: Response) => {
 					_id: false,
 					usersNotificationID: "$_id",
 					screen: "$notification.screen",
+					slot: "$notification.slot",
+					type: "$notification.type",
 					title: "$notification.title",
 					text: "$notification.text",
 					displayType: "$notification.displayType",

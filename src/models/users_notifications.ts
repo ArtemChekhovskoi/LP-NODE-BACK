@@ -21,10 +21,12 @@ const usersNotifications = new Schema(
 		created: {
 			type: Date,
 			required: true,
+			default: Date.now,
 		},
 		lastUpdated: {
 			type: Date,
 			required: true,
+			default: Date.now,
 		},
 	},
 	{ collection: "users_notifications" }

@@ -1,9 +1,10 @@
 import mongoose, { InferSchemaType, Schema } from "mongoose";
 
 const notifications = new Schema({
-	name: {
+	type: {
 		type: String,
 		required: true,
+		unique: true,
 	},
 	displayType: {
 		type: String,
@@ -14,6 +15,9 @@ const notifications = new Schema({
 		type: String,
 		required: true,
 		enum: ["main/today", "main/patterns", "main/trends"],
+	},
+	slot: {
+		type: Number,
 	},
 	title: {
 		type: String,

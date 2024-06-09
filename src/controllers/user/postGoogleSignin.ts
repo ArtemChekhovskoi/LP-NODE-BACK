@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { isValidToken } from "@controllers/user/helpers/isValidToken";
 import { getDataFromGoogle } from "@controllers/user/helpers/getDataFromGoogle";
 import { logger } from "@logger/index";
+import mongoose, { ClientSession } from "mongoose";
 import { socialLogin } from "./helpers/socialLogin";
 
 export type SocialType = "google" | "facebook" | "apple";
@@ -21,25 +22,30 @@ export interface IClientData {
 	userAgent?: string;
 }
 
+interface IUserData {
+	accessToken: string;
+	usersID: string;
+	registrationStep?: string;
+	appsConnected: string[] | [];
+	lastSyncDate: Date;
+}
+
 interface ApiResponse {
 	success: boolean;
-	data: {
-		token?: string;
-		registrationStep?: string;
-		usersID?: string;
-		provider?: SocialType;
-	};
+	data: IUserData | null;
 	error: string;
 	errorCode: string;
 }
 const postGoogleSignIn = async (req: Request, res: Response) => {
-	const PROVIDER = "google";
 	const responseJSON: ApiResponse = {
 		success: false,
-		data: {},
+		data: null,
 		error: "",
 		errorCode: "",
 	};
+	let mongoSession: ClientSession | null = null;
+	let userData: IUserData | null = null;
+
 	try {
 		const { token } = req.body;
 		// token validation
@@ -60,17 +66,24 @@ const postGoogleSignIn = async (req: Request, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
-		const userData = await socialLogin(req, res, profile, "google");
+		mongoSession = await mongoose.startSession();
+		await mongoSession.withTransaction(async () => {
+			userData = (await socialLogin(req, res, profile, "google", mongoSession)) as IUserData;
+			responseJSON.success = true;
+			responseJSON.data = userData;
+		});
+		await mongoSession.endSession();
 
-		responseJSON.success = true;
-		responseJSON.data = userData;
-		responseJSON.data.provider = PROVIDER;
 		return res.status(200).json(responseJSON);
 	} catch (error) {
 		logger.error(`Error at controllers/postGoogleSign: ${error}`, error);
 		responseJSON.error = "Internal server error";
 		responseJSON.errorCode = "INTERNAL_SERVER_ERROR";
 		return res.status(500).json(responseJSON);
+	} finally {
+		if (mongoSession) {
+			await mongoSession.endSession();
+		}
 	}
 };
 
