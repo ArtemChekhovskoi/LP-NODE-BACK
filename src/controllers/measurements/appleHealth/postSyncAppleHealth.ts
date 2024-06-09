@@ -3,7 +3,7 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import { HealthValue, RAW_MEASUREMENT_CODES, RAW_MEASUREMENT_CODES_ARRAY } from "@constants/measurements";
-import mongoose, { ClientSession, Model, Types } from "mongoose";
+import { Model, Types } from "mongoose";
 import saveAppleHealthHeight from "@controllers/measurements/appleHealth/heplers/saveAppleHealthHeight";
 import saveAppleHealthWeight from "@controllers/measurements/appleHealth/heplers/saveAppleHealthWeight";
 import saveAppleHealthWalkingRunningDistance from "@controllers/measurements/appleHealth/heplers/saveAppleHealthWalkingRunningDistance";
@@ -72,7 +72,6 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		errorCode: "",
 		lastSyncDate: "",
 	};
-	let mongoSession: ClientSession | null = null;
 	const syncStartTime = process.hrtime();
 	let transStartTime;
 	try {
@@ -118,22 +117,14 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		}
 
 		transStartTime = process.hrtime();
-		mongoSession = await mongoose.startSession();
-		await mongoSession.withTransaction(async () => {
-			for (const [collectionName, preparedMeasurements] of Object.entries(preparedMeasurementsByCollectionName)) {
-				const model = MODELS_BY_COLLECTION_NAME[collectionName] as Model<any>;
-				if (!model || !mongoSession) {
-					throw new Error(`Model not found for ${collectionName}`);
-				}
-				await model.bulkWrite(preparedMeasurements, { session: mongoSession });
+		for (const [collectionName, preparedMeasurements] of Object.entries(preparedMeasurementsByCollectionName)) {
+			const model = MODELS_BY_COLLECTION_NAME[collectionName] as Model<any>;
+			if (!model) {
+				throw new Error(`Model not found for ${collectionName}`);
 			}
-			await Users.updateOne(
-				{ _id: new ObjectId(usersID) },
-				{ lastSyncDate: syncEndDatePrepared, lastUpdated: new Date() },
-				{ mongoSession }
-			);
-		});
-		await mongoSession.endSession();
+			await model.bulkWrite(preparedMeasurements);
+		}
+		await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate: syncEndDatePrepared, lastUpdated: new Date() });
 		// await sendHealthSyncStatus({ usersID, syncPercentage: 100, statusCode: 3 });
 		responseJSON.lastSyncDate = syncEndDatePrepared.toISOString();
 		responseJSON.success = true;
@@ -144,9 +135,6 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		responseJSON.errorCode = "SOMETHING_WRONG";
 		return res.status(500).json(responseJSON);
 	} finally {
-		if (mongoSession) {
-			await mongoSession?.endSession();
-		}
 		const startDiff = process.hrtime(syncStartTime);
 		const transDiff = process.hrtime(transStartTime);
 		const overallDuration = startDiff[0] * 1e9 + startDiff[1];
