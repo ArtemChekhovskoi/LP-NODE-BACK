@@ -67,8 +67,9 @@ class App {
 		this.useRoutes();
 		this.useSwagger();
 		this.useErrorHandler();
-		this.app.listen(process.env.PORT || this.port);
-		this.logger.info(`Server running at http://localhost:${this.port}/`);
+		this.app.listen(+this.port, "::", () => {
+			this.logger.info(`Server running at http://localhost::${this.port}/`);
+		});
 	}
 }
 
