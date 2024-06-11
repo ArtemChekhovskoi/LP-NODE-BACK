@@ -17,7 +17,7 @@ process.on("SIGINT", async () => {
 class App {
 	app: Express;
 
-	port = config.server.port;
+	port = process.env.PORT || 3040;
 
 	logger;
 

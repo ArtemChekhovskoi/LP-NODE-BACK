@@ -1,7 +1,6 @@
 {
   "server": {
     "baseDir": "./",
-    "port": 3040,
     "domain": "localhost"
   },
   "swagger": {
