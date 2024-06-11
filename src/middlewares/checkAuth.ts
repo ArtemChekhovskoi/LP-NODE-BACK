@@ -17,6 +17,7 @@ export interface ExtendedRequest extends Request {
 	sessionsID?: string;
 	usersID?: string;
 	token?: string;
+	bodySize?: number;
 }
 const checkAuth = async (req: ExtendedRequest, res: Response, next: NextFunction): Promise<void | Response> => {
 	const isNotProtectedRoute = config.auth.notProtectedRoutes.find((route) => req.url.startsWith(route));
