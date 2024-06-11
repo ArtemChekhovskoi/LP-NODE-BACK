@@ -12,6 +12,7 @@ import { UsersSteps } from "@models/users_steps";
 import { UsersWalkingRunningDistance } from "@models/users_walking_running_distance";
 
 import { logger } from "@logger/index";
+import { sendHealthSyncStatus } from "@helpers/sendToPubRedis";
 
 const { ObjectId } = Types;
 
@@ -27,7 +28,7 @@ const MODELS_BY_COLLECTION_NAME = {
 	[UsersWalkingRunningDistance.collection.name]: UsersWalkingRunningDistance,
 };
 
-const MONGO_BULK_WRITE_LIMIT = 1;
+const MONGO_BULK_WRITE_LIMIT = 1000;
 
 const saveSyncData = async (
 	preparedMeasurementsByCollectionName: IPreparedMeasurementsByCollectionName,
@@ -53,11 +54,25 @@ const saveSyncData = async (
 				logger.info(`Sync percentage: ${Math.round((measurementsSynced / totalMeasurementsAmount) * 100)}%`);
 			}
 
-			// await sendHealthSyncStatus({ usersID, syncPercentage: 100, statusCode: 3 });
+			await sendHealthSyncStatus({
+				usersID,
+				syncPercentage: +(measurementsSynced / totalMeasurementsAmount).toFixed(2),
+				statusCode: 1,
+			});
 		}
 		await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate: syncDatePrepared, lastUpdated: new Date() });
+		await sendHealthSyncStatus({
+			usersID,
+			syncPercentage: +(measurementsSynced / totalMeasurementsAmount).toFixed(2),
+			statusCode: 3,
+		});
 	} catch (e) {
 		logger.error("Error while saving sync data", e);
+		await sendHealthSyncStatus({
+			usersID,
+			syncPercentage: +(measurementsSynced / totalMeasurementsAmount).toFixed(2),
+			statusCode: 2,
+		});
 		throw e;
 	} finally {
 		const syncEndTime = process.hrtime(syncStartTime);
