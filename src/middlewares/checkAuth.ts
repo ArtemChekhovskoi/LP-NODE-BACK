@@ -6,6 +6,7 @@ import { Users } from "@models/users";
 import { Sessions } from "@models/sessions";
 import validator from "validator";
 import { Types } from "mongoose";
+import * as process from "process";
 
 const { ObjectId } = Types;
 
@@ -17,6 +18,7 @@ export interface ExtendedRequest extends Request {
 	sessionsID?: string;
 	usersID?: string;
 	token?: string;
+	bodySize?: number;
 }
 const checkAuth = async (req: ExtendedRequest, res: Response, next: NextFunction): Promise<void | Response> => {
 	const isNotProtectedRoute = config.auth.notProtectedRoutes.find((route) => req.url.startsWith(route));
@@ -26,7 +28,7 @@ const checkAuth = async (req: ExtendedRequest, res: Response, next: NextFunction
 	try {
 		if (req.headers.authorization && req.headers.authorization.split(" ")[0] === "Bearer") {
 			const token = req.headers.authorization.split(" ")[1];
-			const jwtData: JWTData | string = jwt.verify(token, config.jwt.accessTokenSecret);
+			const jwtData: JWTData | string = jwt.verify(token, process.env.JWT_SECRET || "secret");
 			if (typeof jwtData === "string") {
 				throw new Error(`Jwt data is incorrect ${jwtData}`);
 			}

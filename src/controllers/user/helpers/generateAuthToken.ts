@@ -3,13 +3,15 @@ import { Sessions } from "@models/sessions";
 import config from "@config/index";
 import { IClientData, SocialType } from "@controllers/user/postGoogleSignin";
 import { Types } from "mongoose";
+import * as process from "process";
 
 interface IGenerateAuthTokenReturn {
 	accessToken: string;
 }
 const generateAuthToken = async (type: SocialType, clientData: IClientData, usersID: Types.ObjectId): Promise<IGenerateAuthTokenReturn> => {
 	const { userAgent } = clientData;
-	const { accessTokenSecret, accessTokenExpires, maxCount } = config.jwt;
+	const { accessTokenExpires, maxCount } = config.jwt;
+	const accessTokenSecret = process.env.JWT_SECRET || "secret";
 
 	const userTokensCount = await Sessions.countDocuments({
 		usersID,

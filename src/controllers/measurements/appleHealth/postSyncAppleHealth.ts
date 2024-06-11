@@ -3,7 +3,6 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import { HealthValue, RAW_MEASUREMENT_CODES, RAW_MEASUREMENT_CODES_ARRAY } from "@constants/measurements";
-import { Model, Types } from "mongoose";
 import saveAppleHealthHeight from "@controllers/measurements/appleHealth/heplers/saveAppleHealthHeight";
 import saveAppleHealthWeight from "@controllers/measurements/appleHealth/heplers/saveAppleHealthWeight";
 import saveAppleHealthWalkingRunningDistance from "@controllers/measurements/appleHealth/heplers/saveAppleHealthWalkingRunningDistance";
@@ -11,18 +10,8 @@ import saveAppleHealthSteps from "@controllers/measurements/appleHealth/heplers/
 import saveAppleHealthSleep, { ISleepSample } from "@controllers/measurements/appleHealth/heplers/saveAppleHealthSleep";
 import saveAppleHealthHeartRate from "@controllers/measurements/appleHealth/heplers/saveAppleHealthHeartRate";
 import saveAppleHealthActivity, { IActivitySample } from "@controllers/measurements/appleHealth/heplers/saveAppleHealthActivity";
-import { Users } from "@models/users";
-import { UsersActivity } from "@models/users_activity";
-import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
-import { UsersHeartRate } from "@models/users_heart_rate";
-import { UsersDailyHeartRate } from "@models/users_daily_heart_rate";
-import { UsersHeight } from "@models/users_height";
-import { UsersWeight } from "@models/users_weight";
-import { UsersSleep } from "@models/users_sleep";
-import { UsersSteps } from "@models/users_steps";
-import { UsersWalkingRunningDistance } from "@models/users_walking_running_distance";
 
-const { ObjectId } = Types;
+import saveSyncData from "@controllers/measurements/appleHealth/heplers/saveSyncData";
 
 interface IMeasurementsObject {
 	heartRate: HealthValue[] | null;
@@ -40,7 +29,7 @@ interface IRequestBody {
 	endDate: string;
 }
 
-interface IPreparedMeasurementsByCollectionName {
+export interface IPreparedMeasurementsByCollectionName {
 	[key: string]: any[];
 }
 
@@ -54,17 +43,6 @@ const PREPARE_STRATEGY = {
 	[RAW_MEASUREMENT_CODES.SLEEP]: saveAppleHealthSleep,
 };
 
-const MODELS_BY_COLLECTION_NAME = {
-	[UsersActivity.collection.name]: UsersActivity,
-	[UsersDailyMeasurementsSum.collection.name]: UsersDailyMeasurementsSum,
-	[UsersHeartRate.collection.name]: UsersHeartRate,
-	[UsersDailyHeartRate.collection.name]: UsersDailyHeartRate,
-	[UsersHeight.collection.name]: UsersHeight,
-	[UsersWeight.collection.name]: UsersWeight,
-	[UsersSleep.collection.name]: UsersSleep,
-	[UsersSteps.collection.name]: UsersSteps,
-	[UsersWalkingRunningDistance.collection.name]: UsersWalkingRunningDistance,
-};
 const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 	const responseJSON = {
 		success: false,
@@ -73,7 +51,8 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		lastSyncDate: "",
 	};
 	const syncStartTime = process.hrtime();
-	let transStartTime;
+	logger.info(`Request size in bytes: ${req.headers["content-length"]}`);
+	logger.info(`Body: ${JSON.stringify(req.body)}`);
 	try {
 		const { usersID } = req;
 		const { measurements, utcOffset, endDate } = req.body as IRequestBody;
@@ -98,6 +77,7 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		}
 
 		const preparedMeasurementsByCollectionName: IPreparedMeasurementsByCollectionName = {};
+		let totalMeasurementsLength = 0;
 
 		for (const [measurementCode, measurementsArray] of Object.entries(measurements)) {
 			if (measurementsArray && measurementsArray.length > 0 && PREPARE_STRATEGY[measurementCode]) {
@@ -112,20 +92,16 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 					} else {
 						preparedMeasurementsByCollectionName[preparedMeasurements.model].push(...preparedMeasurements.data);
 					}
+					totalMeasurementsLength += preparedMeasurements.data.length;
 				}
 			}
 		}
 
-		transStartTime = process.hrtime();
-		for (const [collectionName, preparedMeasurements] of Object.entries(preparedMeasurementsByCollectionName)) {
-			const model = MODELS_BY_COLLECTION_NAME[collectionName] as Model<any>;
-			if (!model) {
-				throw new Error(`Model not found for ${collectionName}`);
-			}
-			await model.bulkWrite(preparedMeasurements);
-		}
-		await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate: syncEndDatePrepared, lastUpdated: new Date() });
-		// await sendHealthSyncStatus({ usersID, syncPercentage: 100, statusCode: 3 });
+		logger.info(`Total measurements length: ${totalMeasurementsLength}`);
+		saveSyncData(preparedMeasurementsByCollectionName, usersID, syncEndDatePrepared, totalMeasurementsLength).catch((e) => {
+			logger.error(`Error at saveSyncData: ${e}`, e);
+			throw e;
+		});
 		responseJSON.lastSyncDate = syncEndDatePrepared.toISOString();
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);
@@ -136,11 +112,8 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		return res.status(500).json(responseJSON);
 	} finally {
 		const startDiff = process.hrtime(syncStartTime);
-		const transDiff = process.hrtime(transStartTime);
 		const overallDuration = startDiff[0] * 1e9 + startDiff[1];
-		const transDuration = transDiff[0] * 1e9 + transDiff[1];
-		console.log(`Overall sync time: ${overallDuration / 1e6} ms`);
-		console.log(`Transaction time: ${transDuration / 1e6} ms`);
+		logger.info(`Sync preparation time: ${overallDuration / 1e6} ms`);
 	}
 };
 
