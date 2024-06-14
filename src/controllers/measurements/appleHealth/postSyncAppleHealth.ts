@@ -12,6 +12,7 @@ import saveAppleHealthHeartRate from "@controllers/measurements/appleHealth/hepl
 import saveAppleHealthActivity, { IActivitySample } from "@controllers/measurements/appleHealth/heplers/saveAppleHealthActivity";
 
 import saveSyncData from "@controllers/measurements/appleHealth/heplers/saveSyncData";
+import { UsersPendingHealthSync } from "@models/users_pending_health_sync";
 
 interface IMeasurementsObject {
 	heartRate: HealthValue[] | null;
@@ -52,11 +53,19 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 	};
 	const syncStartTime = process.hrtime();
 	logger.info(`Request size in bytes: ${req.headers["content-length"]}`);
-	logger.info(`Body: ${JSON.stringify(req.body)}`);
+
 	try {
 		const { usersID } = req;
 		const { measurements, utcOffset, endDate } = req.body as IRequestBody;
 		const syncEndDatePrepared = new Date(endDate);
+
+		const usersActiveSync = await UsersPendingHealthSync.findOne({ usersID });
+		if (usersActiveSync) {
+			responseJSON.error = "Sync is already in progress";
+			responseJSON.errorCode = "SYNC_ALREADY_IN_PROGRESS";
+			return res.status(400).json(responseJSON);
+		}
+
 		if (
 			!measurements ||
 			Object.keys(measurements).some((rawMeasurementCode) => !RAW_MEASUREMENT_CODES_ARRAY.includes(rawMeasurementCode))
@@ -97,11 +106,20 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 			}
 		}
 
+		const newUsersActiveSync = new UsersPendingHealthSync({
+			usersID,
+			syncedMeasurementsCodes: [],
+			totalRecordsCount: totalMeasurementsLength,
+			progress: 0,
+		});
+		await newUsersActiveSync.save();
+
 		logger.info(`Total measurements length: ${totalMeasurementsLength}`);
 		saveSyncData(preparedMeasurementsByCollectionName, usersID, syncEndDatePrepared, totalMeasurementsLength).catch((e) => {
 			logger.error(`Error at saveSyncData: ${e}`, e);
 			throw e;
 		});
+
 		responseJSON.lastSyncDate = syncEndDatePrepared.toISOString();
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);

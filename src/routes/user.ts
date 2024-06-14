@@ -12,6 +12,7 @@ import {
 const router = Router();
 
 router.route("/profile").get(controllers.user.getProfile);
+router.route("/sync-status").get(controllers.user.getSyncStatus);
 
 router.route("/google-signin").post(validateDTO(postGoogleSignInSchema), controllers.user.postGoogleSignIn);
 router.route("/logout").post(controllers.user.postLogOut);

@@ -13,6 +13,8 @@ import { UsersWalkingRunningDistance } from "@models/users_walking_running_dista
 
 import { logger } from "@logger/index";
 import { sendHealthSyncStatus } from "@helpers/sendToPubRedis";
+import { UsersPendingHealthSync } from "@models/users_pending_health_sync";
+import rollbackHealthSync from "@controllers/measurements/appleHealth/heplers/rollbackHealthSync";
 
 const { ObjectId } = Types;
 
@@ -51,16 +53,28 @@ const saveSyncData = async (
 				await model.bulkWrite(bulkWriteOperations);
 
 				measurementsSynced += bulkWriteOperations.length;
-				logger.info(`Sync percentage: ${Math.round((measurementsSynced / totalMeasurementsAmount) * 100)}%`);
+				const progress = +(measurementsSynced / totalMeasurementsAmount).toFixed(2);
+				logger.info(`Sync percentage: ${Math.round(+progress * 100)}%`);
+				await sendHealthSyncStatus({
+					usersID,
+					syncPercentage: progress,
+					statusCode: 1,
+				});
 			}
-
-			await sendHealthSyncStatus({
-				usersID,
-				syncPercentage: +(measurementsSynced / totalMeasurementsAmount).toFixed(2),
-				statusCode: 1,
-			});
+			await UsersPendingHealthSync.updateOne(
+				{ usersID },
+				{
+					$set: {
+						progress: +(measurementsSynced / totalMeasurementsAmount).toFixed(2),
+						totalRecordsCount: totalMeasurementsAmount,
+					},
+					$push: { syncedCollections: collectionName },
+				}
+			);
 		}
+
 		await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate: syncDatePrepared, lastUpdated: new Date() });
+		await UsersPendingHealthSync.deleteOne({ usersID });
 		await sendHealthSyncStatus({
 			usersID,
 			syncPercentage: +(measurementsSynced / totalMeasurementsAmount).toFixed(2),
@@ -68,6 +82,7 @@ const saveSyncData = async (
 		});
 	} catch (e) {
 		logger.error("Error while saving sync data", e);
+		await rollbackHealthSync({ usersID, modelsByCollectionName: MODELS_BY_COLLECTION_NAME });
 		await sendHealthSyncStatus({
 			usersID,
 			syncPercentage: +(measurementsSynced / totalMeasurementsAmount).toFixed(2),

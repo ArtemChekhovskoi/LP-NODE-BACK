@@ -5,6 +5,7 @@ import postUpdateAppsConnected from "@controllers/user/postUpdateAppsConnected";
 import postUpdateRegistrationStep from "@controllers/user/postUpdateRegistrationStep";
 import postUpdateLastSyncDate from "@controllers/user/postUpdateLastSyncDate";
 import getProfile from "@controllers/user/getProfile";
+import getSyncStatus from "@controllers/user/getSyncStatus";
 
 const user = {
 	postGoogleSignIn,
@@ -14,6 +15,7 @@ const user = {
 	postUpdateRegistrationStep,
 	postUpdateLastSyncDate,
 	getProfile,
+	getSyncStatus,
 };
 
 export default user;

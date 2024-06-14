@@ -8,7 +8,7 @@ const usersPendingHealthSync = new Schema(
 			required: true,
 			ref: Users.collection.name,
 		},
-		syncedMeasurementsCodes: [
+		syncedCollections: [
 			{
 				type: String,
 			},
