@@ -55,11 +55,22 @@ const saveSyncData = async (
 				measurementsSynced += bulkWriteOperations.length;
 				const progress = +(measurementsSynced / totalMeasurementsAmount).toFixed(2);
 				logger.info(`Sync percentage: ${Math.round(+progress * 100)}%`);
-				await sendHealthSyncStatus({
-					usersID,
-					syncPercentage: progress,
-					statusCode: 1,
-				});
+				await Promise.all([
+					sendHealthSyncStatus({
+						usersID,
+						syncPercentage: progress,
+						statusCode: 1,
+					}),
+					UsersPendingHealthSync.updateOne(
+						{ usersID },
+						{
+							$set: {
+								progress: +(measurementsSynced / totalMeasurementsAmount).toFixed(2),
+								totalRecordsCount: totalMeasurementsAmount,
+							},
+						}
+					),
+				]);
 			}
 			await UsersPendingHealthSync.updateOne(
 				{ usersID },
@@ -72,7 +83,6 @@ const saveSyncData = async (
 				}
 			);
 		}
-
 		await Users.updateOne({ _id: new ObjectId(usersID) }, { lastSyncDate: syncDatePrepared, lastUpdated: new Date() });
 		await UsersPendingHealthSync.deleteOne({ usersID });
 		await sendHealthSyncStatus({

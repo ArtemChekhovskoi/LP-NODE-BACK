@@ -66,6 +66,14 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
+		const newUsersActiveSync = new UsersPendingHealthSync({
+			usersID,
+			syncedMeasurementsCodes: [],
+			totalRecordsCount: 0,
+			progress: 0,
+		});
+		await newUsersActiveSync.save();
+
 		if (
 			!measurements ||
 			Object.keys(measurements).some((rawMeasurementCode) => !RAW_MEASUREMENT_CODES_ARRAY.includes(rawMeasurementCode))
@@ -106,14 +114,7 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 			}
 		}
 
-		const newUsersActiveSync = new UsersPendingHealthSync({
-			usersID,
-			syncedMeasurementsCodes: [],
-			totalRecordsCount: totalMeasurementsLength,
-			progress: 0,
-		});
-		await newUsersActiveSync.save();
-
+		await UsersPendingHealthSync.updateOne({ usersID }, { $set: { totalRecordsCount: totalMeasurementsLength } });
 		logger.info(`Total measurements length: ${totalMeasurementsLength}`);
 		saveSyncData(preparedMeasurementsByCollectionName, usersID, syncEndDatePrepared, totalMeasurementsLength).catch((e) => {
 			logger.error(`Error at saveSyncData: ${e}`, e);
