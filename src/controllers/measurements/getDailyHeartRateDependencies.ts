@@ -40,7 +40,6 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			activity: {},
 		},
 	};
-
 	try {
 		const { usersID } = req;
 		let { date } = req.query as unknown as RequestQuery;
@@ -171,6 +170,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			});
 			dayTime = dayTime.add(30, "minutes");
 		}
+		responseJSON.success = true;
 		responseJSON.data = {
 			heartRate: { ...heartRateWithScales, measurements: heartRateWithZeroValues },
 			sleep: sleepWithPercentages,

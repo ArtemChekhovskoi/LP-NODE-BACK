@@ -4,6 +4,7 @@ import postUpdateGender from "@controllers/user/postUpdateGender";
 import postUpdateAppsConnected from "@controllers/user/postUpdateAppsConnected";
 import postUpdateRegistrationStep from "@controllers/user/postUpdateRegistrationStep";
 import postUpdateLastSyncDate from "@controllers/user/postUpdateLastSyncDate";
+import postSavePushToken from "@controllers/user/postSavePushToken";
 import getProfile from "@controllers/user/getProfile";
 import getSyncStatus from "@controllers/user/getSyncStatus";
 
@@ -14,6 +15,7 @@ const user = {
 	postUpdateGender,
 	postUpdateRegistrationStep,
 	postUpdateLastSyncDate,
+	postSavePushToken,
 	getProfile,
 	getSyncStatus,
 };
