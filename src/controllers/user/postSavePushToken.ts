@@ -32,7 +32,7 @@ const postSavePushToken = async (req: ExtendedRequest, res: Response) => {
 		}
 
 		const pushTokenPrepared = isPermissionGranted && pushToken ? pushToken : null;
-		await Users.updateOne({ _id: usersID }, { pushNotifications: { isPermissionGranted, pushToken: pushTokenPrepared } });
+		await Users.updateOne({ _id: usersID }, { pushNotifications: { isPermissionGranted, token: pushTokenPrepared } });
 
 		responseJSON.success = true;
 		return res.json(responseJSON);
