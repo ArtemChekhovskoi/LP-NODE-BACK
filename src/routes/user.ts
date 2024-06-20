@@ -20,5 +20,6 @@ router.route("/update-gender").post(validateDTO(postUpdateGenderSchema), control
 router.route("/update-apps-connected").post(validateDTO(postUpdateAppsConnectedSchema), controllers.user.postUpdateAppsConnected);
 router.route("/update-registration-step").post(validateDTO(postUpdateRegistrationStepSchema), controllers.user.postUpdateRegistrationStep);
 router.route("/update-last-sync-date").post(validateDTO(postUpdateLastSyncDateSchema), controllers.user.postUpdateLastSyncDate);
+router.route("/save-push-token").post(controllers.user.postSavePushToken);
 
 export default router;

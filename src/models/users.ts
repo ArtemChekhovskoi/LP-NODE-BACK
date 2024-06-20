@@ -16,6 +16,7 @@ const users = new Schema(
 		created: {
 			type: Date,
 			required: true,
+			default: Date.now,
 		},
 		lastUpdated: {
 			type: Date,
@@ -54,6 +55,14 @@ const users = new Schema(
 		registrationStep: {
 			type: String,
 			enum: ["gender", "connectApp", "location", "new", "complete"],
+		},
+		pushNotifications: {
+			isPermissionGranted: {
+				type: Boolean,
+			},
+			token: {
+				type: String,
+			},
 		},
 		lastSyncDate: {
 			type: Date,
