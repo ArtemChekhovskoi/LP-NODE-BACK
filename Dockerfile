@@ -15,6 +15,8 @@ COPY . .
 # Build the application
 RUN npm run build
 
+RUN mv ./ecosystem.config.js ./dist/ecosystem.config.js
+
 ENV NODE_ENV production
 WORKDIR ./dist
 
