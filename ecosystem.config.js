@@ -3,7 +3,7 @@ module.exports = {
 	apps: [
 		{
 			name: "LP-NODE-BACK",
-			script: "./dist/src/index.js",
+			script: "./src/index.js",
 			autorestart: true,
 			exec_mode: "fork",
 			watch: false,
