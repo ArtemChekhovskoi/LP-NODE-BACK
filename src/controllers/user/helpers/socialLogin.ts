@@ -14,6 +14,7 @@ interface ISocialLoginReturn {
 	usersID: string;
 	registrationStep?: string;
 	appsConnected: string[] | [];
+	timezoneMinutes: number;
 	lastSyncDate: Date;
 }
 const socialLogin = async (
@@ -25,16 +26,23 @@ const socialLogin = async (
 ): Promise<ISocialLoginReturn> => {
 	const clientData = { userAgent: req.headers["user-agent"] };
 	const hashedProfileId = createSha512Hash(`${profile.id}`) || "";
+	const localTimeOffset = req.body?.localTimeOffset ? req.body.localTimeOffset : 0;
 
 	const searchOption = {
 		socialAccounts: { [socialFieldName]: hashedProfileId },
 		active: true,
 	};
 	const userBySocialId = await Users.findOne(searchOption);
+
 	if (userBySocialId) {
 		const tokens = await generateAuthToken(socialFieldName, clientData, userBySocialId._id);
+
+		if (userBySocialId.timezoneMinutes !== localTimeOffset) {
+			await Users.updateOne({ _id: userBySocialId._id }, { timezoneMinutes: localTimeOffset, lastUpdated: new Date() });
+		}
 		return {
 			...tokens,
+			timezoneMinutes: localTimeOffset,
 			usersID: userBySocialId._id.toString(),
 			registrationStep: userBySocialId.registrationStep,
 			appsConnected: userBySocialId.appsConnected,
@@ -51,6 +59,7 @@ const socialLogin = async (
 		lastUpdated: new Date(),
 		active: true,
 		registrationStep: "gender",
+		timezoneMinutes: localTimeOffset,
 		lastSyncDate: dayjs().subtract(1, "month").toDate(),
 	});
 	const uploadDataNotification = await Notifications.findOne(
@@ -74,6 +83,7 @@ const socialLogin = async (
 
 	return {
 		...tokens,
+		timezoneMinutes: savedNewUser.timezoneMinutes,
 		usersID: savedNewUser._id.toString(),
 		registrationStep: savedNewUser.registrationStep,
 		lastSyncDate: savedNewUser.lastSyncDate || new Date(),

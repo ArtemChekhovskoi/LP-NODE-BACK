@@ -47,13 +47,20 @@ const postGoogleSignIn = async (req: Request, res: Response) => {
 	let userData: IUserData | null = null;
 
 	try {
-		const { token } = req.body;
+		const { token, localTimeOffset } = req.body;
 		// token validation
 		const isValidGoogleToken = isValidToken(token);
 		if (!isValidGoogleToken) {
 			logger.error(`Error at controllers/postGoogleSign: Invalid token 1!`);
 			responseJSON.error = "Invalid token!";
 			responseJSON.errorCode = "INVALID_TOKEN";
+			return res.status(400).json(responseJSON);
+		}
+
+		if (!localTimeOffset) {
+			logger.error(`Error at controllers/postGoogleSign: Invalid localTime!`);
+			responseJSON.error = "Invalid localTime!";
+			responseJSON.errorCode = "INVALID_LOCAL_TIME";
 			return res.status(400).json(responseJSON);
 		}
 
