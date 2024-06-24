@@ -64,6 +64,10 @@ const users = new Schema(
 				type: String,
 			},
 		},
+		timezoneMinutes: {
+			type: Number,
+			default: 0,
+		},
 		lastSyncDate: {
 			type: Date,
 		},
