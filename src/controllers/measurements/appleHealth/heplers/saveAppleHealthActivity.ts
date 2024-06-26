@@ -42,11 +42,11 @@ const saveAppleHealthActivity = (activity: IActivitySample[], usersID: string, u
 		const periodActivityHours = +(curr.duration / 3600).toFixed(2);
 		if (!acc[date]) {
 			acc[date] = {
-				dailyActiveEnergyBurned: curr.totalEnergyBurned.quantity,
+				dailyActiveEnergyBurned: curr?.totalEnergyBurned?.quantity || 0,
 				dailyActivityTimeHours: periodActivityHours,
 			};
 		} else {
-			acc[date].dailyActiveEnergyBurned += curr.totalEnergyBurned.quantity;
+			acc[date].dailyActiveEnergyBurned += curr?.totalEnergyBurned?.quantity || 0;
 			acc[date].dailyActivityTimeHours += periodActivityHours;
 		}
 		return acc;
@@ -102,7 +102,7 @@ const saveAppleHealthActivity = (activity: IActivitySample[], usersID: string, u
 			update: {
 				$set: {
 					endDate: new Date(measurement.endDate),
-					activeEnergyBurned: measurement.totalEnergyBurned.quantity,
+					activeEnergyBurned: measurement?.totalEnergyBurned?.quantity || 0,
 					activityType: measurement.workoutActivityType,
 					durationS: measurement.duration,
 					lastUpdated: new Date(),
