@@ -10,7 +10,6 @@ import { getMeasurementsScale } from "@controllers/patterns/helpers/getMeasureme
 import isBetween from "dayjs/plugin/isBetween";
 import dayjs from "dayjs";
 import { UsersHeartRate } from "@models/users_heart_rate";
-import filterMeasurementsByPeriod from "@controllers/measurements/helpers/filterMeasurementsByPeriod";
 import { ActivitiesConfig } from "@models/activities_config";
 import calculateMeasurementPercentages from "@controllers/measurements/helpers/calculateMeasurementPercentages";
 import calculateSleepPercentages from "@helpers/calculateSleepPercentages";
@@ -59,7 +58,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			).lean(),
 			UsersHeartRate.find(
 				{ usersID, startDate: { $gte: startOfTheDay }, endDate: { $lte: endOfTheDay } },
-				{ value: true, startDate: true, endDate: true, _id: false }
+				{ value: true, maxValue: true, minValue: true, startDate: true, endDate: true, _id: false }
 			)
 				.lean()
 				.sort({ startDate: 1 }),
@@ -119,7 +118,6 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 				emoji: activityConfig?.emoji,
 			};
 		});
-		const everyHalfAndHourHeartRate = filterMeasurementsByPeriod(usersHeartRate, 30);
 		const heartRatePrepared = [
 			{
 				unit: heartRateConfig.unit,
@@ -127,7 +125,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 				displayColor: heartRateConfig.displayColor,
 				code: heartRateConfig.code,
 				name: heartRateConfig.name,
-				measurements: everyHalfAndHourHeartRate,
+				measurements: usersHeartRate,
 			},
 		];
 
@@ -141,6 +139,7 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			return res.status(200).json(responseJSON);
 		}
 
+		console.log(JSON.stringify(heartRateWithScales, null, 2));
 		let dayTime = dayjs(startOfTheDay);
 		const heartRateWithZeroValues = [];
 

@@ -20,14 +20,17 @@ const usersHeartRate = new Schema(
 			type: Number,
 			required: true,
 		},
+		minValue: {
+			type: Number,
+			required: true,
+		},
+		maxValue: {
+			type: Number,
+			required: true,
+		},
 		sourceName: {
 			type: String,
 			required: true,
-		},
-		lastUpdated: {
-			type: Date,
-			required: true,
-			default: new Date(),
 		},
 	},
 	{ collection: "users_heart_rate" }

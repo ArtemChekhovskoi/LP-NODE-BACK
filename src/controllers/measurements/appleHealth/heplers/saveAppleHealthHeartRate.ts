@@ -4,6 +4,7 @@ import { Types } from "mongoose";
 import calculateMinMaxAvg from "@controllers/measurements/helpers/calculateMinMaxAvg";
 import { UsersDailyHeartRate } from "@models/users_daily_heart_rate";
 import dayjs from "dayjs";
+import prepareMeasurementsByPeriod from "@controllers/measurements/helpers/prepareMeasurementsByPeriod";
 
 const { ObjectId } = Types;
 
@@ -72,7 +73,8 @@ const saveAppleHealthHeartRate = async (heartRate: HealthValue[], usersID: strin
 		};
 	});
 
-	const heartRateBulkUpdateArray = heartRateWithCorrectDates.map((measurement) => {
+	const heartRateForEvery30Minutes = prepareMeasurementsByPeriod(heartRateWithCorrectDates, 30);
+	const heartRateBulkUpdateArray = heartRateForEvery30Minutes.map((measurement) => {
 		return {
 			updateOne: {
 				filter: {
@@ -83,6 +85,8 @@ const saveAppleHealthHeartRate = async (heartRate: HealthValue[], usersID: strin
 				update: {
 					$set: {
 						endDate: new Date(measurement.endDate),
+						minValue: measurement.minValue,
+						maxValue: measurement.maxValue,
 						value: measurement.value,
 						lastUpdated: new Date(),
 					},

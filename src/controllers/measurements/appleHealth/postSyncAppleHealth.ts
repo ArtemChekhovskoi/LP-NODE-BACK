@@ -66,14 +66,6 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 			return res.status(400).json(responseJSON);
 		}
 
-		const newUsersActiveSync = new UsersPendingHealthSync({
-			usersID,
-			syncedMeasurementsCodes: [],
-			totalRecordsCount: 0,
-			progress: 0,
-		});
-		await newUsersActiveSync.save();
-
 		if (
 			!measurements ||
 			Object.keys(measurements).some((rawMeasurementCode) => !RAW_MEASUREMENT_CODES_ARRAY.includes(rawMeasurementCode))
@@ -92,6 +84,14 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		if (!usersID) {
 			throw new Error("usersID couldn't be found");
 		}
+
+		const newUsersActiveSync = new UsersPendingHealthSync({
+			usersID,
+			syncedMeasurementsCodes: [],
+			totalRecordsCount: 0,
+			progress: 0,
+		});
+		await newUsersActiveSync.save();
 
 		const preparedMeasurementsByCollectionName: IPreparedMeasurementsByCollectionName = {};
 		let totalMeasurementsLength = 0;
