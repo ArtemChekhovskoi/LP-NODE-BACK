@@ -55,7 +55,7 @@
     "runningWalkingDistanceSamples"
   ],
   "weather": {
-    "apiKey": "17b99e1cb5db41df95e181556230211",
+    "apiKey": "",
     "url": "https://api.weatherapi.com/v1"
   }
 }
