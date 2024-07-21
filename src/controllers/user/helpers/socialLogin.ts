@@ -7,6 +7,7 @@ import { Notifications } from "@models/notifications";
 import { NOTIFICATIONS_TYPES } from "@constants/notifications";
 import { UsersNotifications } from "@models/users_notifications";
 import { ClientSession } from "mongoose";
+import { PushNotifications } from "@models/push_notifications";
 import { generateAuthToken } from "./generateAuthToken";
 
 interface ISocialLoginReturn {
@@ -51,6 +52,15 @@ const socialLogin = async (
 	}
 
 	// Create new user
+
+	const [uploadDataNotification, activePushesIDs] = await Promise.all([
+		Notifications.findOne({ type: NOTIFICATIONS_TYPES.ONBOARDING_UPLOAD_DATA, active: true }, { _id: true }),
+		PushNotifications.find({ active: true }, { _id: true }),
+	]);
+	if (!uploadDataNotification) {
+		throw new Error("User onboarding notification not found");
+	}
+
 	const newUser = new Users({
 		socialAccounts: {
 			[socialFieldName]: hashedProfileId,
@@ -61,14 +71,10 @@ const socialLogin = async (
 		registrationStep: "gender",
 		timezoneMinutes: localTimeOffset,
 		lastSyncDate: dayjs().subtract(1, "month").toDate(),
+		pushNotifications: {
+			pushSubscriptions: activePushesIDs?.length ? activePushesIDs.map((push) => push._id) : [],
+		},
 	});
-	const uploadDataNotification = await Notifications.findOne(
-		{ type: NOTIFICATIONS_TYPES.ONBOARDING_UPLOAD_DATA, active: true },
-		{ _id: true }
-	);
-	if (!uploadDataNotification) {
-		throw new Error("User onboarding notification not found");
-	}
 
 	const newUserUploadDataNotification = new UsersNotifications({
 		usersID: newUser._id,

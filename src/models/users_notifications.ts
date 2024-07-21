@@ -18,6 +18,11 @@ const usersNotifications = new Schema(
 			type: Boolean,
 			required: true,
 		},
+		additionalInfo: {
+			usersPatternID: {
+				type: Schema.Types.ObjectId,
+			},
+		},
 		created: {
 			type: Date,
 			required: true,

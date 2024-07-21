@@ -80,6 +80,7 @@ const checkAuth = async (req: ExtendedRequest, res: Response, next: NextFunction
 		return res.status(401).json({
 			success: false,
 			error: "Error: Not authorized to access this resource",
+			errorCode: "NOT_AUTHORIZED",
 		});
 	}
 };
