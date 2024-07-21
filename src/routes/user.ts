@@ -21,5 +21,6 @@ router.route("/update-apps-connected").post(validateDTO(postUpdateAppsConnectedS
 router.route("/update-registration-step").post(validateDTO(postUpdateRegistrationStepSchema), controllers.user.postUpdateRegistrationStep);
 router.route("/update-last-sync-date").post(validateDTO(postUpdateLastSyncDateSchema), controllers.user.postUpdateLastSyncDate);
 router.route("/save-push-token").post(controllers.user.postSavePushToken);
+router.route("/update-push-subscriptions").post(controllers.user.postUpdatePushSubscriptions);
 
 export default router;

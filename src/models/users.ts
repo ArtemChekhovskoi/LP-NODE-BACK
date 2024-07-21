@@ -1,4 +1,4 @@
-import mongoose, { InferSchemaType, Schema } from "mongoose";
+import mongoose, { InferSchemaType, Schema, Types } from "mongoose";
 
 const users = new Schema(
 	{
@@ -63,6 +63,11 @@ const users = new Schema(
 			token: {
 				type: String,
 			},
+			pushSubscriptions: [
+				{
+					type: Types.ObjectId,
+				},
+			],
 		},
 		timezoneMinutes: {
 			type: Number,

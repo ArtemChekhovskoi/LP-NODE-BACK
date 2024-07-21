@@ -139,12 +139,14 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 			return res.status(200).json(responseJSON);
 		}
 
-		console.log(JSON.stringify(heartRateWithScales, null, 2));
 		let dayTime = dayjs(startOfTheDay);
 		const heartRateWithZeroValues = [];
 
 		// Insert heart rate empty values for the missing half-hour periods
 		for (const heartRate of heartRateWithScales.measurements) {
+			if (dayjs(heartRate.startDate).isBefore(dayTime)) {
+				continue;
+			}
 			while (!dayjs(heartRate?.startDate).add(1, "minutes").isBetween(dayTime, dayTime.add(30, "minutes"))) {
 				heartRateWithZeroValues.push({
 					value: 0,
@@ -156,8 +158,8 @@ const getDailyHeartRateDependencies = async (req: ExtendedRequest, res: Response
 				}
 				dayTime = dayTime.add(30, "minutes");
 			}
-			heartRateWithZeroValues.push(heartRate);
 			dayTime = dayTime.add(30, "minutes");
+			heartRateWithZeroValues.push({ ...heartRate, startDate: dayTime.toDate(), endDate: dayTime.add(30, "minutes").toDate() });
 		}
 
 		// Insert heart rate empty values to the end of the day

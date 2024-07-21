@@ -56,6 +56,7 @@ const getUserNotifications = async (req: ExtendedRequest, res: Response) => {
 					buttonText: "$notification.buttonText",
 					isClickable: "$notification.isClickable",
 					buttonLink: "$notification.buttonLink",
+					additionalInfo: true,
 				},
 			},
 		];
