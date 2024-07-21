@@ -17,7 +17,7 @@ RUN npm run build
 
 RUN mv ./ecosystem.config.js ./dist/ecosystem.config.js
 
-ENV NODE_ENV production
+ENV NODE_ENV development
 WORKDIR ./dist
 
 # Expose the port

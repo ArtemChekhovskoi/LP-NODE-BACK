@@ -30,6 +30,7 @@ const getProfile = async (req: ExtendedRequest, res: Response) => {
 					registrationStep: true,
 					appsConnected: true,
 					lastSyncDate: true,
+					pushNotifications: "$pushNotifications.pushSubscriptions",
 				}
 			).lean(),
 			UsersDailyReflections.findOne(
@@ -49,6 +50,7 @@ const getProfile = async (req: ExtendedRequest, res: Response) => {
 
 		responseJSON.data = {
 			...userProfile,
+			pushSubscriptions: userProfile.pushNotifications || [],
 			isMorningReflectionDone: usersReflection?.isMorningReflectionDone || false,
 			isEveningReflectionDone: usersReflection?.isEveningReflectionDone || false,
 		};

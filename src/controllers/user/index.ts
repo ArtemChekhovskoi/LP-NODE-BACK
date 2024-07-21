@@ -5,6 +5,7 @@ import postUpdateAppsConnected from "@controllers/user/postUpdateAppsConnected";
 import postUpdateRegistrationStep from "@controllers/user/postUpdateRegistrationStep";
 import postUpdateLastSyncDate from "@controllers/user/postUpdateLastSyncDate";
 import postSavePushToken from "@controllers/user/postSavePushToken";
+import postUpdatePushSubscriptions from "@controllers/user/postUpdatePushSubscriptions";
 import getProfile from "@controllers/user/getProfile";
 import getSyncStatus from "@controllers/user/getSyncStatus";
 
@@ -16,6 +17,7 @@ const user = {
 	postUpdateRegistrationStep,
 	postUpdateLastSyncDate,
 	postSavePushToken,
+	postUpdatePushSubscriptions,
 	getProfile,
 	getSyncStatus,
 };
