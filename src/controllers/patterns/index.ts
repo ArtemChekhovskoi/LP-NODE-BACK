@@ -1,11 +1,13 @@
 import getPatternsList from "@controllers/patterns/getPatternsList";
 import getPreparedPatterns from "@controllers/patterns/getPreparedPatterns";
 import postRatePattern from "@controllers/patterns/postRatePattern";
+import postMarkPatternAsViewed from "@controllers/patterns/postMarkPatternAsViewed";
 
 const patterns = {
 	getPatternsList,
 	getPreparedPatterns,
 	postRatePattern,
+	postMarkPatternAsViewed,
 };
 
 export default patterns;

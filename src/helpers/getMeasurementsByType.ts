@@ -1,7 +1,6 @@
 import { ACTIVE_MEASUREMENTS } from "@constants/measurements";
 import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
 import { UsersDailyHeartRate } from "@models/users_daily_heart_rate";
-import { UsersWeight } from "@models/users_weight";
 import { UsersDailyReflections } from "@models/users_daily_reflections";
 
 type DailySumKeys = "dailySteps" | "dailyDistance" | "sleepDuration" | "dailyActivityDuration" | "dailyCaloriesBurned";
@@ -28,12 +27,7 @@ interface AvgHeartRateReturn {
 	[ACTIVE_MEASUREMENTS.MAX_HEART_RATE]: IReturnValue[];
 	[ACTIVE_MEASUREMENTS.MIN_HEART_RATE]: IReturnValue[];
 }
-interface GetHeightReturn {
-	[ACTIVE_MEASUREMENTS.HEIGHT]: IReturnValue[];
-}
-interface GetWeightReturn {
-	[ACTIVE_MEASUREMENTS.WEIGHT]: IReturnValue[];
-}
+
 interface DailyReflectionsReturn {
 	[ACTIVE_MEASUREMENTS.DAILY_SLEEP_QUALITY]: IReturnValue[];
 	[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_FEELING]: IReturnValue[];
@@ -84,48 +78,6 @@ const getDailyHeartRateByDates = async (dates: Date[], usersID: string): Promise
 	};
 };
 
-const getWeightByDates = async (dates: Date[], usersID: string): Promise<GetWeightReturn> => {
-	const dailyWeight = await UsersWeight.find(
-		{
-			$or: [
-				{
-					usersID,
-					date: { $in: dates },
-				},
-				{ usersID },
-			],
-		},
-		{ value: true, date: true, _id: false }
-	)
-		.sort({ date: -1 })
-		.lean();
-	const weightWithDates = dailyWeight.map((item) => ({ ...item, date: item.date || new Date() }));
-	return {
-		[ACTIVE_MEASUREMENTS.WEIGHT]: prepareMeasurementDataForReturn(dates, weightWithDates),
-	};
-};
-
-const getHeightByDates = async (dates: Date[], usersID: string): Promise<GetHeightReturn> => {
-	const dailyHeight = await UsersWeight.find(
-		{
-			$or: [
-				{
-					usersID,
-					date: { $in: dates },
-				},
-				{ usersID },
-			],
-		},
-		{ value: true, date: true, _id: false }
-	)
-		.sort({ date: -1 })
-		.lean();
-	const heightWithDates = dailyHeight.map((item) => ({ ...item, date: item.date || new Date() }));
-	return {
-		[ACTIVE_MEASUREMENTS.HEIGHT]: prepareMeasurementDataForReturn(dates, heightWithDates),
-	};
-};
-
 const getMeasurementFromDailySum = async (
 	dates: Date[],
 	usersID: string,
@@ -158,4 +110,4 @@ const getDailyReflections = async (dates: Date[], usersID: string): Promise<Dail
 	};
 };
 
-export { getDailyHeartRateByDates, getWeightByDates, getHeightByDates, getMeasurementFromDailySum, getDailyReflections };
+export { getDailyHeartRateByDates, getMeasurementFromDailySum, getDailyReflections };

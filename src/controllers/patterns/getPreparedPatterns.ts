@@ -57,6 +57,8 @@ const getPreparedPatterns = async (req: ExtendedRequest, res: Response) => {
 						title: { $first: "$title" },
 						description: { $first: "$description" },
 						isRelevantToUser: { $first: "$isRelevantToUser" },
+						shownTime: { $first: "$shownTime" },
+						isViewedByUser: { $first: "$isViewedByUser" },
 					},
 				},
 				{
@@ -68,6 +70,8 @@ const getPreparedPatterns = async (req: ExtendedRequest, res: Response) => {
 						description: true,
 						isRelevantToUser: true,
 						dateTo: "$created",
+						shownTime: true,
+						isViewedByUser: true,
 					},
 				},
 			]),
@@ -94,7 +98,7 @@ const getPreparedPatterns = async (req: ExtendedRequest, res: Response) => {
 					dateFrom: dayjs(pattern.dateTo)
 						.subtract(patternConfig?.compareIntervalValue, patternConfig?.compareIntervalType)
 						.toDate(),
-					isNew: dayjs(pattern.dateTo).add(1, "day").isAfter(dayjs()),
+					isNew: dayjs(pattern.shownTime).add(1, "day").isAfter(dayjs()),
 					measurementCodes: patternConfig.pair.map((measurementConfig) => measurementConfig.measurementCode),
 					displayNames: patternConfig.pair.map((measurementConfig) => measurementConfig.displayName),
 					periodType: patternConfig.compareIntervalType,

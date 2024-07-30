@@ -3,8 +3,6 @@ import { Response } from "express";
 import { logger } from "@logger/index";
 import { ExtendedRequest } from "@middlewares/checkAuth";
 import { HealthValue, RAW_MEASUREMENT_CODES, RAW_MEASUREMENT_CODES_ARRAY } from "@constants/measurements";
-import saveAppleHealthHeight from "@controllers/measurements/appleHealth/heplers/saveAppleHealthHeight";
-import saveAppleHealthWeight from "@controllers/measurements/appleHealth/heplers/saveAppleHealthWeight";
 import saveAppleHealthWalkingRunningDistance from "@controllers/measurements/appleHealth/heplers/saveAppleHealthWalkingRunningDistance";
 import saveAppleHealthSteps from "@controllers/measurements/appleHealth/heplers/saveAppleHealthSteps";
 import saveAppleHealthSleep, { ISleepSample } from "@controllers/measurements/appleHealth/heplers/saveAppleHealthSleep";
@@ -36,8 +34,6 @@ export interface IPreparedMeasurementsByCollectionName {
 
 const PREPARE_STRATEGY = {
 	[RAW_MEASUREMENT_CODES.HEART_RATE]: saveAppleHealthHeartRate,
-	[RAW_MEASUREMENT_CODES.HEIGHT]: saveAppleHealthHeight,
-	[RAW_MEASUREMENT_CODES.WEIGHT]: saveAppleHealthWeight,
 	[RAW_MEASUREMENT_CODES.WALKING_RUNNING_DISTANCE]: saveAppleHealthWalkingRunningDistance,
 	[RAW_MEASUREMENT_CODES.STEPS]: saveAppleHealthSteps,
 	[RAW_MEASUREMENT_CODES.ACTIVITY]: saveAppleHealthActivity,

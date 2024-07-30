@@ -9,5 +9,6 @@ router.route("/patterns-list").get(validateDTO(getPatternsListSchema, "query"), 
 router.route("/prepared-patterns").get(controllers.patterns.getPreparedPatterns);
 
 router.route("/rate-pattern").post(controllers.patterns.postRatePattern);
+router.route("/mark-pattern-viewed").post(controllers.patterns.postMarkPatternAsViewed);
 
 export default router;

@@ -7,13 +7,7 @@ import validator from "validator";
 import getStartOfDay from "@helpers/getStartOfTheDay";
 import { ACTIVE_MEASUREMENTS, MEASUREMENTS_GROUPS } from "@constants/measurements";
 import getReducedMeasurementsConfig from "@controllers/measurements/helpers/getReducedMeasurementsConfig";
-import {
-	getDailyHeartRateByDates,
-	getDailyReflections,
-	getHeightByDates,
-	getMeasurementFromDailySum,
-	getWeightByDates,
-} from "@helpers/getMeasurementsByType";
+import { getDailyHeartRateByDates, getDailyReflections, getMeasurementFromDailySum } from "@helpers/getMeasurementsByType";
 
 type RequestQuery = {
 	date?: string;
@@ -30,8 +24,6 @@ type IResponseData = ReturnedDailyMeasurement[] | [];
 
 const MEASUREMENTS_DAILY_STRATEGY = {
 	[MEASUREMENTS_GROUPS.DAILY_HEART_RATE.code]: (dates: Date[], usersID: string) => getDailyHeartRateByDates(dates, usersID),
-	[MEASUREMENTS_GROUPS.WEIGHT.code]: (dates: Date[], usersID: string) => getWeightByDates(dates, usersID),
-	[MEASUREMENTS_GROUPS.HEIGHT.code]: (dates: Date[], usersID: string) => getHeightByDates(dates, usersID),
 	[MEASUREMENTS_GROUPS.SLEEP_DURATION.code]: (dates: Date[], usersID: string) =>
 		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.SLEEP_DURATION),
 	[MEASUREMENTS_GROUPS.DAILY_STEPS.code]: (dates: Date[], usersID: string) =>

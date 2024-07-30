@@ -35,6 +35,7 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 		errorCode: "",
 		data: [] as IResponseData[],
 	};
+	const balanceEggStart = process.hrtime();
 	try {
 		const { usersID } = req;
 		const { startDate, endDate } = req.query as unknown as RequestQuery;
@@ -49,6 +50,8 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 			.endOf("day")
 			.toDate();
 		const datesArray = generateDatesArray(startOfTheDay, endDateEndOfDay);
+
+		const dbStartTime = process.hrtime();
 		const [dailyMeasurementsSum, reducedMeasurementsConfig] = await Promise.all([
 			UsersDailyMeasurementsSum.find(
 				{
@@ -68,6 +71,8 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 				.lean(),
 			getReducedMeasurementsConfig(),
 		]);
+		const dbEndTime = process.hrtime();
+
 		const groupedMeasurements = dailyMeasurementsSum.reduce(
 			(acc, item) => {
 				if (!acc[item.measurementCode]) {
@@ -118,11 +123,19 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 				};
 			})
 			.reverse();
+
+		const balanceEggEnd = process.hrtime();
+		const patternsListDurationInMs =
+			balanceEggEnd[0] * 1000 + balanceEggEnd[1] / 1e6 - balanceEggStart[0] * 1000 - balanceEggStart[1] / 1e6;
+		const dbDurationInMs = dbEndTime[0] * 1000 + dbEndTime[1] / 1e6 - dbStartTime[0] * 1000 - dbStartTime[1] / 1e6;
+		logger.info(`Balance egg duration: ${patternsListDurationInMs}ms`);
+		logger.info(`Balance egg DB part duration: ${dbDurationInMs}ms`);
+
 		responseJSON.data = data;
 		responseJSON.success = true;
 		return res.status(200).json(responseJSON);
 	} catch (e) {
-		logger.error(`Error at controllers/measurements/getBalanceEggConfig: ${e}`);
+		logger.error(`Error at controllers/measurements/getBalanceEggConfig: ${e}`, e);
 		responseJSON.error = "Something went wrong";
 		responseJSON.errorCode = "SOMETHING_WRONG";
 		return res.status(500).json(responseJSON);

@@ -20,8 +20,6 @@ const IN_SLEEP_VALUES_ARRAY = Object.values(IN_SLEEP_VALUES);
 const RAW_MEASUREMENT_CODES = {
 	SLEEP: "sleep",
 	ACTIVITY: "activity",
-	HEIGHT: "height",
-	WEIGHT: "weight",
 	STEPS: "steps",
 	HEART_RATE: "heartRate",
 	WALKING_RUNNING_DISTANCE: "walkingRunningDistance",
@@ -34,8 +32,6 @@ const ACTIVE_MEASUREMENTS = {
 	AVG_HEART_RATE: "avgHeartRate",
 	MAX_HEART_RATE: "maxHeartRate",
 	MIN_HEART_RATE: "minHeartRate",
-	WEIGHT: "weight",
-	HEIGHT: "height",
 	DAILY_STEPS: "dailySteps",
 	DAILY_DISTANCE: "dailyDistance",
 	DAILY_ACTIVITY_DURATION: "dailyActivityDuration",
@@ -51,8 +47,6 @@ const MEASUREMENTS_IN_PATTERNS = {
 	AVG_HEART_RATE: "avgHeartRate",
 	MAX_HEART_RATE: "maxHeartRate",
 	MIN_HEART_RATE: "minHeartRate",
-	WEIGHT: "weight",
-	HEIGHT: "height",
 	DAILY_STEPS: "dailySteps",
 	DAILY_DISTANCE: "dailyDistance",
 	DAILY_ACTIVITY_DURATION: "dailyActivityDuration",
@@ -88,14 +82,6 @@ const MEASUREMENTS_GROUPS = {
 	SLEEP_DURATION: {
 		code: "sleepDuration",
 		measurements: [ACTIVE_MEASUREMENTS.SLEEP_DURATION],
-	},
-	WEIGHT: {
-		code: "weight",
-		measurements: [ACTIVE_MEASUREMENTS.WEIGHT],
-	},
-	HEIGHT: {
-		code: "height",
-		measurements: [ACTIVE_MEASUREMENTS.HEIGHT],
 	},
 	WEATHER: {
 		code: "weather",

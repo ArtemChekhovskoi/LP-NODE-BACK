@@ -13,6 +13,9 @@ const usersOpenaiPatterns = new Schema(
 		usersNotificationsID: {
 			type: Schema.Types.ObjectId,
 		},
+		usersPushNotificationsID: {
+			type: Schema.Types.ObjectId,
+		},
 		isPatternFound: {
 			type: Boolean,
 			required: true,
@@ -27,6 +30,13 @@ const usersOpenaiPatterns = new Schema(
 			type: Boolean,
 			required: true,
 			default: false,
+		},
+		shownTime: {
+			type: Date,
+		},
+		isViewedByUser: {
+			type: Boolean,
+			required: true,
 		},
 		isRelevantToUser: {
 			type: Boolean,

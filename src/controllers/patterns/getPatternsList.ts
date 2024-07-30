@@ -8,13 +8,7 @@ import calculateAverageByDate from "@controllers/patterns/helpers/calculateAvera
 import generateDatesArray from "@helpers/generateDatesArray";
 import { getMeasurementsScale } from "@controllers/patterns/helpers/getMeasurementsScale";
 import { ACTIVE_MEASUREMENTS, IActiveMeasurementsInPatternsValues } from "@constants/measurements";
-import {
-	getDailyHeartRateByDates,
-	getDailyReflections,
-	getHeightByDates,
-	getMeasurementFromDailySum,
-	getWeightByDates,
-} from "@helpers/getMeasurementsByType";
+import { getDailyHeartRateByDates, getDailyReflections, getMeasurementFromDailySum } from "@helpers/getMeasurementsByType";
 import getStartOfDay from "@helpers/getStartOfTheDay";
 import prepareMeasurementsForReturn from "@helpers/prepareMeasurementsForReturn";
 import getReducedMeasurementsConfig from "@controllers/measurements/helpers/getReducedMeasurementsConfig";
@@ -49,8 +43,6 @@ const QUERIES_BY_MEASUREMENT_TYPES = {
 	[ACTIVE_MEASUREMENTS.AVG_HEART_RATE]: getDailyHeartRateByDates,
 	[ACTIVE_MEASUREMENTS.MAX_HEART_RATE]: getDailyHeartRateByDates,
 	[ACTIVE_MEASUREMENTS.MIN_HEART_RATE]: getDailyHeartRateByDates,
-	[ACTIVE_MEASUREMENTS.WEIGHT]: getWeightByDates,
-	[ACTIVE_MEASUREMENTS.HEIGHT]: getHeightByDates,
 	[ACTIVE_MEASUREMENTS.SLEEP_DURATION]: (dates: Date[], usersID: string) =>
 		getMeasurementFromDailySum(dates, usersID, ACTIVE_MEASUREMENTS.SLEEP_DURATION),
 	[ACTIVE_MEASUREMENTS.DAILY_STEPS]: (dates: Date[], usersID: string) =>
@@ -66,6 +58,8 @@ const QUERIES_BY_MEASUREMENT_TYPES = {
 } as const;
 
 const getPatternsList = async (req: ExtendedRequest, res: Response) => {
+	const patternsListStart = process.hrtime();
+
 	const responseJSON: IResponseWithData<IPatternsListResponseWithScales[] | []> = {
 		success: false,
 		error: "",
@@ -82,6 +76,7 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 			responseJSON.errorCode = "MEASUREMENTS_REQUIRED";
 			return res.status(400).json(responseJSON);
 		}
+		const dbStartTime = process.hrtime();
 		const reducedMeasurementsConfig = await getReducedMeasurementsConfig();
 
 		const isMeasurementsValid = measurementsArray.every((item) => {
@@ -105,6 +100,8 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 				return { [measurementKey]: measurementsObj[measurementKey] };
 			})
 		);
+		const dbEndTime = process.hrtime();
+
 		let preparedData = prepareMeasurementsForReturn(measurementsData, reducedMeasurementsConfig);
 		if (presentation !== DATA_PRESENTATION.DAY) {
 			preparedData = calculateAverageByDate(preparedData, presentation);
@@ -133,11 +130,17 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 		}
 		responseJSON.success = true;
 		responseJSON.data = dataWithScales;
+		const patternsListEnd = process.hrtime();
+
+		const patternsListDurationInMs =
+			patternsListEnd[0] * 1000 + patternsListEnd[1] / 1e6 - patternsListStart[0] * 1000 - patternsListStart[1] / 1e6;
+		const dbDurationInMs = dbEndTime[0] * 1000 + dbEndTime[1] / 1e6 - dbStartTime[0] * 1000 - dbStartTime[1] / 1e6;
+		logger.info(`Patterns list duration: ${patternsListDurationInMs}ms`);
+		logger.info(`Patterns list DB part duration: ${dbDurationInMs}ms`);
 
 		return res.status(200).json(responseJSON);
 	} catch (e) {
-		logger.error(`Error in controllers/getPatternsList: ${e}`);
-		logger.error(e);
+		logger.error(`Error in controllers/getPatternsList: ${e}`, e);
 		responseJSON.error = "Internal server error";
 		responseJSON.errorCode = "INTERNAL_SERVER_ERROR";
 		return res.status(500).json(responseJSON);
