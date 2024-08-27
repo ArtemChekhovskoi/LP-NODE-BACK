@@ -23,12 +23,12 @@ const usersDailyMeasurementsSum = new Schema(
 		lastUpdated: {
 			type: Date,
 			required: true,
-			default: new Date(),
+			default: Date.now,
 		},
 		created: {
 			type: Date,
 			required: true,
-			default: new Date(),
+			default: Date.now,
 		},
 	},
 	{ collection: "users_daily_measurements_sum" }

@@ -60,6 +60,7 @@ const saveAppleHealthActivity = (activity: IActivitySample[], usersID: string, u
 							date: new Date(date),
 							usersID: new ObjectId(usersID),
 							measurementCode: ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION,
+							created: { $gte: getStartOfDay(date), $lt: dayjs(getStartOfDay(date)).add(1, "day").toDate() },
 						},
 						update: {
 							$inc: {

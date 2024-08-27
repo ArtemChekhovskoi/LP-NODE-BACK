@@ -22,7 +22,7 @@ const usersWeight = new Schema(
 		lastUpdated: {
 			type: Date,
 			required: true,
-			default: new Date(),
+			default: Date.now,
 		},
 	},
 	{ collection: "users_weight" }

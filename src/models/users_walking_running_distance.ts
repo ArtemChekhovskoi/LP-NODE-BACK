@@ -26,7 +26,7 @@ const usersWalkingRunningDistance = new Schema(
 		lastUpdated: {
 			type: Date,
 			required: true,
-			default: new Date(),
+			default: Date.now,
 		},
 	},
 	{ collection: "users_walking_running_distance" }

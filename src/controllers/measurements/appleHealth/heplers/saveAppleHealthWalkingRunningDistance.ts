@@ -5,6 +5,7 @@ import sumMeasurementsByDay from "@controllers/measurements/helpers/sumMeasureme
 import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
 import dayjs from "dayjs";
 import reduceMeasurementBySourceName from "@helpers/reduceMeasurementBySourceName";
+import getStartOfDay from "@helpers/getStartOfTheDay";
 
 const { ObjectId } = Types;
 
@@ -31,6 +32,7 @@ const saveAppleHealthWalkingRunningDistance = (walkingRunningDistance: HealthVal
 					usersID: new ObjectId(usersID),
 					date: new Date(measurement.date),
 					measurementCode: ACTIVE_MEASUREMENTS.DAILY_DISTANCE,
+					created: { $gte: getStartOfDay(measurement.date), $lt: dayjs(getStartOfDay(measurement.date)).add(1, "day").toDate() },
 				},
 				update: {
 					$inc: {

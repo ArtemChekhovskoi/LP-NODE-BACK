@@ -4,6 +4,7 @@ import sumDailySleep from "@controllers/measurements/helpers/sumDailySleep";
 import { ACTIVE_MEASUREMENTS } from "@constants/measurements";
 import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
 import dayjs from "dayjs";
+import getStartOfDay from "@helpers/getStartOfTheDay";
 
 const { ObjectId } = Types;
 
@@ -34,6 +35,7 @@ const saveAppleHealthSleep = (sleep: ISleepSample[], usersID: string, utcOffset:
 					date: new Date(date),
 					usersID: new ObjectId(usersID),
 					measurementCode: ACTIVE_MEASUREMENTS.SLEEP_DURATION,
+					created: { $gte: getStartOfDay(date), $lt: dayjs(getStartOfDay(date)).add(1, "day").toDate() },
 				},
 				update: {
 					$inc: {

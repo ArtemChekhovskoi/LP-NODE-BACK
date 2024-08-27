@@ -25,7 +25,7 @@ const usersPendingHealthSync = new Schema(
 		created: {
 			type: Date,
 			required: true,
-			default: Date.now(),
+			default: Date.now,
 		},
 	},
 	{ collection: "users_pending_health_sync" }

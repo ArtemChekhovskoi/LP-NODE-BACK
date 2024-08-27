@@ -48,6 +48,7 @@ const usersDailyWeather = new Schema(
 		lastUpdated: {
 			type: Date,
 			required: true,
+			default: Date.now,
 		},
 	},
 	{ collection: "users_daily_weather" }

@@ -38,7 +38,7 @@ const usersDailyReflections = new Schema(
 		lastUpdated: {
 			type: Date,
 			required: true,
-			default: new Date(),
+			default: Date.now,
 		},
 	},
 	{ collection: "users_daily_reflections" }

@@ -5,6 +5,7 @@ import calculateMinMaxAvg from "@controllers/measurements/helpers/calculateMinMa
 import { UsersDailyHeartRate } from "@models/users_daily_heart_rate";
 import dayjs from "dayjs";
 import prepareMeasurementsByPeriod from "@controllers/measurements/helpers/prepareMeasurementsByPeriod";
+import getStartOfDay from "@helpers/getStartOfTheDay";
 
 const { ObjectId } = Types;
 
@@ -52,6 +53,7 @@ const saveAppleHealthHeartRate = async (heartRate: HealthValue[], usersID: strin
 				filter: {
 					usersID: new ObjectId(usersID),
 					date: new Date(date),
+					created: { $gte: getStartOfDay(date), $lt: dayjs(getStartOfDay(date)).add(1, "day").toDate() },
 				},
 				update: {
 					$set: {
