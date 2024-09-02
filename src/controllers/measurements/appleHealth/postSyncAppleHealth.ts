@@ -48,7 +48,6 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		lastSyncDate: "",
 	};
 	const syncStartTime = process.hrtime();
-	logger.info(`Request size in bytes: ${req.headers["content-length"]}`);
 
 	try {
 		const { usersID } = req;
@@ -111,7 +110,6 @@ const postSyncAppleHealth = async (req: ExtendedRequest, res: Response) => {
 		}
 
 		await UsersPendingHealthSync.updateOne({ usersID }, { $set: { totalRecordsCount: totalMeasurementsLength } });
-		logger.info(`Total measurements length: ${totalMeasurementsLength}`);
 		saveSyncData(preparedMeasurementsByCollectionName, usersID, syncEndDatePrepared, totalMeasurementsLength).catch((e) => {
 			logger.error(`Error at saveSyncData: ${e}`, e);
 			throw e;

@@ -58,8 +58,6 @@ const QUERIES_BY_MEASUREMENT_TYPES = {
 } as const;
 
 const getPatternsList = async (req: ExtendedRequest, res: Response) => {
-	const patternsListStart = process.hrtime();
-
 	const responseJSON: IResponseWithData<IPatternsListResponseWithScales[] | []> = {
 		success: false,
 		error: "",
@@ -76,7 +74,6 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 			responseJSON.errorCode = "MEASUREMENTS_REQUIRED";
 			return res.status(400).json(responseJSON);
 		}
-		const dbStartTime = process.hrtime();
 		const reducedMeasurementsConfig = await getReducedMeasurementsConfig();
 
 		const isMeasurementsValid = measurementsArray.every((item) => {
@@ -100,7 +97,6 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 				return { [measurementKey]: measurementsObj[measurementKey] };
 			})
 		);
-		const dbEndTime = process.hrtime();
 
 		let preparedData = prepareMeasurementsForReturn(measurementsData, reducedMeasurementsConfig);
 		if (presentation !== DATA_PRESENTATION.DAY) {
@@ -130,14 +126,6 @@ const getPatternsList = async (req: ExtendedRequest, res: Response) => {
 		}
 		responseJSON.success = true;
 		responseJSON.data = dataWithScales;
-		const patternsListEnd = process.hrtime();
-
-		const patternsListDurationInMs =
-			patternsListEnd[0] * 1000 + patternsListEnd[1] / 1e6 - patternsListStart[0] * 1000 - patternsListStart[1] / 1e6;
-		const dbDurationInMs = dbEndTime[0] * 1000 + dbEndTime[1] / 1e6 - dbStartTime[0] * 1000 - dbStartTime[1] / 1e6;
-		logger.info(`Patterns list duration: ${patternsListDurationInMs}ms`);
-		logger.info(`Patterns list DB part duration: ${dbDurationInMs}ms`);
-
 		return res.status(200).json(responseJSON);
 	} catch (e) {
 		logger.error(`Error in controllers/getPatternsList: ${e}`, e);

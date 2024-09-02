@@ -24,7 +24,6 @@ const prepareMeasurementsByPeriod = (measurements: HealthValue[], period: number
 					maxValue: measurement.value,
 					sourceName: measurement.sourceName,
 				});
-				console.log(recordsArray);
 				result.filteredMeasurements.push(...recordsArray);
 				result.lastMeasurementTime = measurementTime;
 				return result;
