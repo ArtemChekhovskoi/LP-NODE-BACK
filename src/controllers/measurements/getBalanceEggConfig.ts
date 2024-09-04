@@ -9,6 +9,8 @@ import getStartOfDay from "@helpers/getStartOfTheDay";
 import dayjs from "dayjs";
 import getReducedMeasurementsConfig from "@controllers/measurements/helpers/getReducedMeasurementsConfig";
 import { UsersDailyMeasurementsSum } from "@models/users_daily_measurements_sum";
+import { TUsersSteps, UsersSteps } from "@models/users_steps";
+import { TUsersActivity, UsersActivity } from "@models/users_activity";
 
 interface RequestQuery {
 	startDate: string;
@@ -19,7 +21,6 @@ interface IResponseData {
 	date: Date;
 	activity: {
 		time: number;
-		calories: number;
 	};
 	sleep: {
 		time: number;
@@ -50,16 +51,10 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 			.toDate();
 		const datesArray = generateDatesArray(startOfTheDay, endDateEndOfDay);
 
-		const [dailyMeasurementsSum, reducedMeasurementsConfig] = await Promise.all([
+		const [dailySleepDuration, stepsRawData, activityRawData, reducedMeasurementsConfig] = await Promise.all([
 			UsersDailyMeasurementsSum.find(
 				{
-					measurementCode: {
-						$in: [
-							ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION,
-							ACTIVE_MEASUREMENTS.DAILY_CALORIES_BURNED,
-							ACTIVE_MEASUREMENTS.SLEEP_DURATION,
-						],
-					},
+					measurementCode: ACTIVE_MEASUREMENTS.SLEEP_DURATION,
 					usersID,
 					date: { $in: datesArray },
 				},
@@ -67,24 +62,80 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 			)
 				.sort({ date: -1 })
 				.lean(),
+			UsersSteps.find({
+				usersID,
+				startDate: { $gte: startOfTheDay, $lte: endDateEndOfDay },
+			}).lean(),
+			UsersActivity.find({
+				usersID,
+				startDate: { $gte: startOfTheDay, $lte: endDateEndOfDay },
+			}).lean(),
 			getReducedMeasurementsConfig(),
 		]);
 
-		const groupedMeasurements = dailyMeasurementsSum.reduce(
+		const stepsByDates = stepsRawData.reduce(
 			(acc, item) => {
-				if (!acc[item.measurementCode]) {
-					acc[item.measurementCode] = [item];
-				} else {
-					acc[item.measurementCode] = [...acc[item.measurementCode], item];
+				const date = getStartOfDay(item.startDate).toISOString();
+				if (!acc[date]) {
+					acc[date] = [];
 				}
+				acc[date].push(item);
 				return acc;
 			},
-			{
-				[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION]: [],
-				[ACTIVE_MEASUREMENTS.DAILY_CALORIES_BURNED]: [],
-				[ACTIVE_MEASUREMENTS.SLEEP_DURATION]: [],
-			} as { [key: string]: { value: number; date: Date }[] | [] }
+			{} as Record<string, TUsersSteps[]>
 		);
+
+		const activitiesByDates = activityRawData.reduce(
+			(acc, item) => {
+				const date = getStartOfDay(item.startDate).toISOString();
+				if (!acc[date]) {
+					acc[date] = [];
+				}
+				acc[date].push(item);
+				return acc;
+			},
+			{} as Record<string, TUsersActivity[]>
+		);
+
+		const activityDurationByDate = Object.entries(stepsByDates).map(([date, steps]) => {
+			const stepsDuration = steps.reduce((acc, item) => acc + dayjs(item.endDate).diff(item.startDate), 0);
+			const activities = activitiesByDates[date];
+			if (!activities) {
+				return {
+					date: new Date(date),
+					totalDuration: stepsDuration,
+				};
+			}
+
+			const activityDuration = activities.reduce((acc, item) => acc + dayjs(item.endDate).diff(item.startDate), 0);
+			let totalDuration = stepsDuration + activityDuration;
+			steps.forEach((step) => {
+				const stepEnd = dayjs(step.endDate);
+				const stepStart = dayjs(step.startDate);
+				activities.forEach((activity) => {
+					const activityEnd = dayjs(activity.endDate);
+					const activityStart = dayjs(activity.startDate);
+					const isStepInActivity = stepStart.isAfter(activityStart) && stepEnd.isBefore(activityEnd);
+					if (isStepInActivity) {
+						totalDuration -= stepEnd.diff(stepStart);
+						return;
+					}
+					const isStepEndsInActivity = stepEnd.isAfter(activityStart) && stepStart.isBefore(activityStart);
+					if (isStepEndsInActivity) {
+						totalDuration -= stepEnd.diff(activityStart);
+						return;
+					}
+					const isStepStartsInActivity = stepEnd.isAfter(activityEnd) && stepStart.isBefore(activityEnd);
+					if (isStepStartsInActivity) {
+						totalDuration -= activityEnd.diff(stepStart);
+					}
+				});
+			});
+			return {
+				date: new Date(date),
+				totalDuration,
+			};
+		});
 
 		const sleepPrecision = reducedMeasurementsConfig[ACTIVE_MEASUREMENTS.SLEEP_DURATION].precision || 2;
 		const activityPrecision = reducedMeasurementsConfig[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION].precision || 2;
@@ -92,24 +143,17 @@ const getBalanceEggConfig = async (req: ExtendedRequest, res: Response) => {
 
 		const data = datesArray
 			.map((date) => {
-				const sleepDurationByDate = groupedMeasurements[ACTIVE_MEASUREMENTS.SLEEP_DURATION].find(
-					(item) => item.date.toISOString() === date.toISOString()
-				);
-				const activityDurationByDate = groupedMeasurements[ACTIVE_MEASUREMENTS.DAILY_ACTIVITY_DURATION].find(
-					(item) => item.date.toISOString() === date.toISOString()
-				);
-				const caloriesBurnedByDate = groupedMeasurements[ACTIVE_MEASUREMENTS.DAILY_CALORIES_BURNED].find(
-					(item) => item.date.toISOString() === date.toISOString()
-				);
-				const sleepTime = sleepDurationByDate?.value || 0;
-				const activityTime = activityDurationByDate?.value || 0;
+				const sleepDuration = dailySleepDuration.find((item) => item.date.toISOString() === date.toISOString());
+				const activityDuration = activityDurationByDate.find((item) => item.date.toISOString() === date.toISOString());
+
+				const sleepTime = sleepDuration?.value || 0;
+				const activityTime = activityDuration?.totalDuration ? activityDuration.totalDuration / 1000 / 60 / 60 : 0;
 				const inactiveTime = HOURS_IN_DAY - sleepTime - activityTime;
 
 				return {
 					date,
 					activity: {
 						time: decimalAdjust(activityTime, activityPrecision),
-						calories: decimalAdjust(caloriesBurnedByDate?.value || 0, 0),
 					},
 					sleep: {
 						time: decimalAdjust(sleepTime, sleepPrecision),
